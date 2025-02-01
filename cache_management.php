@@ -19,6 +19,8 @@
  * 7. fetch_and_update_facebook_cache_cron_handler() - Function to handle the cron job for updating the cache automatically.
  *                                      / Fonction pour gérer la tâche cron de mise à jour automatique du cache.
  *
+ * 8. delete_facebook_cache() - Function to delete the cached Facebook feed data and associated media files.
+ *                                     / Fonction pour supprimer les données du flux Facebook mises en cache et les fichiers multimédias associés.
  *********************************************************************************************/
 
 /*****************************************************************************************************************************************************/
@@ -222,9 +224,11 @@ if (isset($current_screen->id) && (
                         if (response === 'in_progress') {
                             showNotice();
                             $('input[name="update_facebook_cache"]').prop('disabled', true); // Disable the button
+                            $('input[name="delete_facebook_cache"]').prop('disabled', true); 
                         } else {
                             removeNotice();
                             $('input[name="update_facebook_cache"]').prop('disabled', false); // Enable the button
+                            $('input[name="delete_facebook_cache"]').prop('disabled', fasle); 
                         }
                     }
                 });
@@ -362,9 +366,12 @@ function usqp_fb_feed_cache_page() {
             <p><strong>Last Cache Update:</strong> <?php echo esc_html($last_update); ?></p>
             <p><strong>Next Scheduled Update:</strong> <?php echo esc_html($next_update); ?></p>
 
-            <!-- Manual Cache Update Form -->
+           
             <form method="post" action="">
+                <!-- Manual Cache Update Form -->
                 <input type="submit" name="update_facebook_cache" class="button-primary" value="Update Cache Manually" />
+                <!-- Manual Cache Deletion Form -->
+                <input type="submit" name="delete_facebook_cache" class="button-primary" value="Delete Cache" onclick="return" />
             </form>
 
             <h3>Automatic Update Settings</h3>
@@ -619,3 +626,24 @@ function fetch_and_update_facebook_cache_cron_handler() {
     fetch_and_update_facebook_cache();
 }
 add_action('usqp_facebook_feed_cache_update_cron', 'fetch_and_update_facebook_cache_cron_handler');
+
+
+/*****************************************************************************************************************************************************/
+// 8. delete_facebook_cache()
+// This function deletes the cached Facebook feed data and associated media files.
+// / Cette fonction supprime les données du flux Facebook mises en cache et les fichiers multimédias associés.
+
+// Check if the user triggered a cache deletion
+if (isset($_POST['delete_facebook_cache'])) {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'usqp_facebook_feed';
+    $cache_dir = wp_upload_dir()['basedir'] . '/usqp/facebook-feed/';
+
+    // Delete all cache files
+    array_map('unlink', glob($cache_dir . "*"));
+
+    // Set last_cache_update to NULL in the database
+    $wpdb->query("UPDATE $table_name SET last_cache_update = NULL");
+
+    echo '<div class="updated"><p>Cache has been successfully deleted from files and database.</p></div>';
+}
