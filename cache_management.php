@@ -10,11 +10,13 @@
  *                                     / Ces fonctions enfilent un script pour vérifier l'état de la mise à jour du cache Facebook et afficher une notification si le cache est en cours de mise à jour.
  * 3. usqp_fb_feed_cache_page() - Function to display the cache management page in the WordPress admin.
  *                                      / Fonction pour afficher la page de gestion du cache dans l'admin WordPress.
- * 4. schedule_cache_update_task() - Function to schedule the cache update task based on the selected frequency.
+ * 4. display_facebook_cache_admin() - Displays a table of cached Facebook posts and reels
+ *                                      / Affiche les publications et reels Facebook mis en cache dans un tableau.
+ * 5. schedule_cache_update_task() - Function to schedule the cache update task based on the selected frequency.
  *                                      / Fonction pour programmer la tâche de mise à jour du cache en fonction de la fréquence sélectionnée.
- * 5. add_custom_cron_intervals() - Function to add custom cron intervals for tasks like updating the cache every minute.
+ * 6. add_custom_cron_intervals() - Function to add custom cron intervals for tasks like updating the cache every minute.
  *                                      / Fonction pour ajouter des intervalles cron personnalisés pour des tâches comme la mise à jour du cache toutes les minutes.
- * 6. fetch_and_update_facebook_cache_cron_handler() - Function to handle the cron job for updating the cache automatically.
+ * 7. fetch_and_update_facebook_cache_cron_handler() - Function to handle the cron job for updating the cache automatically.
  *                                      / Fonction pour gérer la tâche cron de mise à jour automatique du cache.
  *
  *********************************************************************************************/
@@ -51,7 +53,7 @@ function fetch_and_update_facebook_cache() {
         mkdir($cache_dir, 0755, true);
     }
 
-    // Call Facebook API to fetch videos and posts
+    // Call Facebook API to fetch videos and posts (excluding stories)
     $video_response = @file_get_contents("https://graph.facebook.com/v21.0/{$page_id}/videos?access_token={$access_token}");
     $post_response = @file_get_contents("https://graph.facebook.com/v21.0/{$page_id}/posts?access_token={$access_token}");
 
@@ -86,39 +88,64 @@ function fetch_and_update_facebook_cache() {
         file_put_contents($profile_picture_filename, $new_picture_contents);
     }
 
-    // Save JSON files for videos, posts, and page information
-    file_put_contents($cache_dir . 'videos.json', $video_response);
+    // Save JSON files for posts and page information
     file_put_contents($cache_dir . 'posts.json', $post_response);
     file_put_contents($cache_dir . 'page_info.json', json_encode($page_info));
 
-    // Save videos and images to folder (for each video/image)
+    // Save only reels (filtered videos)
     $videos = json_decode($video_response, true);
+    $reels = [];
+
     if (isset($videos['data']) && !empty($videos['data'])) {
         foreach ($videos['data'] as $video) {
+            if (isset($video['type']) && $video['type'] === 'story') {
+                continue; 
+            }
+
             $video_id = $video['id'];
-            $video_details_response = @file_get_contents("https://graph.facebook.com/v21.0/{$video_id}?fields=source,title,description,likes.summary(true),permalink_url,updated_time&access_token={$access_token}");
+            $video_details_response = @file_get_contents("https://graph.facebook.com/v21.0/{$video_id}?fields=source,title,description,likes.summary(true),permalink_url,updated_time,picture&access_token={$access_token}");
             $video_details = json_decode($video_details_response, true);
 
             if (isset($video_details['source'])) {
-                // Download the video
-                $video_url = $video_details['source'];
-                $video_filename = $cache_dir . "video_{$video_id}.mp4";
-                file_put_contents($video_filename, file_get_contents($video_url));
-            }
+                // Verify if the video is a reel (check permalink for "/reel/") - keep only reels
+                $is_reel = strpos($video_details['permalink_url'], '/reel/') !== false;
 
-            // Download associated image (if available)
-            if (isset($video_details['picture'])) {
-                $image_url = $video_details['picture'];
-                $image_filename = $cache_dir . "image_video_{$video_id}.jpg";
-                file_put_contents($image_filename, file_get_contents($image_url));
+                if ($is_reel) {
+                    // If it's a reel, adjust the permalink to point to the correct URL
+                    $video_details['permalink_url'] = "https://www.facebook.com/reel/{$video_id}";
+
+                    // Save the reel video
+                    $video_url = $video_details['source'];
+                    $video_filename = $cache_dir . "video_{$video_id}.mp4";
+                    file_put_contents($video_filename, file_get_contents($video_url));
+
+                    // Save associated image (thumbnail)
+                    if (isset($video_details['picture'])) {
+                        $thumbnail_url = $video_details['picture'];
+                        $thumbnail_filename = $cache_dir . "thumbnail_video_{$video_id}.jpg";
+                        file_put_contents($thumbnail_filename, file_get_contents($thumbnail_url));
+                    }
+
+                    // Add the reel video to the list
+                    $reels[] = $video_details;
+                }
             }
         }
+    }
+
+    // Save only reels to JSON file
+    if (!empty($reels)) {
+        file_put_contents($cache_dir . 'reels.json', json_encode($reels));
     }
 
     // Save post images
     $posts = json_decode($post_response, true);
     if (isset($posts['data']) && !empty($posts['data'])) {
         foreach ($posts['data'] as $post) {
+            if (isset($post['type']) && $post['type'] === 'story') {
+                continue;
+            }
+
             $post_id = $post['id'];
             $post_details_response = @file_get_contents("https://graph.facebook.com/v21.0/{$post_id}?fields=message,permalink_url,updated_time,attachments,likes.summary(true)&access_token={$access_token}");
             $post_details = json_decode($post_details_response, true);
@@ -351,14 +378,181 @@ function usqp_fb_feed_cache_page() {
                 </select>
                 <input type="submit" class="button-primary" value="Save Frequency" />
             </form>
-        </div>    
+        </div>  
+        
+        <h2>Cache Content</h2>
+            <?php display_facebook_cache_admin(); ?> 
+        
         </div>
         <?php
     }
 }
 
 /*****************************************************************************************************************************************************/
-// 4. schedule_cache_update_task()
+/*****************************************************************************************************************************************************/
+// 4. display_facebook_cache_admin()
+// Displays a table of cached Facebook posts and reels
+// / Affiche les publications et reels Facebook mis en cache dans un tableau.
+
+function display_facebook_cache_admin() {
+    global $wpdb;
+
+    // Fetch Facebook page information from the table
+    $table_name = $wpdb->prefix . 'usqp_facebook_feed';
+    $row = $wpdb->get_row("SELECT * FROM $table_name ORDER BY id DESC LIMIT 1");
+
+    // Retrieve `page_id` from the database
+    $page_id = isset($row->page_id) ? $row->page_id : '';
+
+    // Define cache directory
+    $cache_dir = wp_upload_dir()['basedir'] . '/usqp/facebook-feed/';
+
+    // Check if cache files exist
+    $reels_file = $cache_dir . 'reels.json';
+    $posts_file = $cache_dir . 'posts.json';
+
+    if (!file_exists($reels_file) || !file_exists($posts_file)) {
+        echo "<p>No cache content found. Please update the cache.</p>";
+        return;
+    }
+
+    // Load data from cache
+    $reels = json_decode(file_get_contents($reels_file), true);
+    $posts = json_decode(file_get_contents($posts_file), true);
+
+    // Check if JSON data is valid
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        echo "<p>Error in decoding JSON data. Please check the cache files.</p>";
+        return;
+    }
+
+    // Function to calculate elapsed time
+    function time_elapsed($timestamp) {
+        $timestamp = strtotime($timestamp);
+        if (!$timestamp) {
+            return "Invalid date";
+        }
+
+        $time_difference = time() - $timestamp;
+        $units = [
+            'year' => 31536000,
+            'month' => 2592000,
+            'week' => 604800,
+            'day' => 86400,
+            'hour' => 3600,
+            'minute' => 60,
+        ];
+
+        foreach ($units as $unit => $value) {
+            if ($time_difference >= $value) {
+                $count = floor($time_difference / $value);
+                return "{$count} {$unit}" . ($count > 1 ? 's' : '');
+            }
+        }
+
+        return "less than a minute ago";
+    }
+
+    // Function to sort by date (ISO 8601 format)
+    function sort_by_date($a, $b) {
+        $a_time = isset($a['updated_time']) ? strtotime($a['updated_time']) : (isset($a['created_time']) ? strtotime($a['created_time']) : 0);
+        $b_time = isset($b['updated_time']) ? strtotime($b['updated_time']) : (isset($b['created_time']) ? strtotime($b['created_time']) : 0);
+        
+        return $b_time - $a_time;  // Sort descending (most recent first)
+    }
+
+    // Combine reels and posts into a single array
+    $all_posts_and_reels = [];
+
+    // **Add reels**
+    if (isset($reels) && !empty($reels)) {
+        foreach ($reels as $reel) {
+            $all_posts_and_reels[] = [
+                'type' => 'reel',
+                'id' => isset($reel['id']) ? $reel['id'] : 'N/A',
+                'created_time' => isset($reel['updated_time']) ? $reel['updated_time'] : (isset($reel['created_time']) ? $reel['created_time'] : 'Unknown'),
+                'description' => isset($reel['description']) ? $reel['description'] : 'No description available',
+                'permalink_url' => isset($reel['permalink_url']) ? $reel['permalink_url'] : '#',
+            ];
+        }
+    }
+
+    // **Add posts**
+    if (isset($posts['data']) && !empty($posts['data'])) {
+        foreach ($posts['data'] as $post) {
+            $all_posts_and_reels[] = [
+                'type' => 'post',
+                'id' => isset($post['id']) ? $post['id'] : 'N/A',
+                'created_time' => isset($post['created_time']) ? $post['created_time'] : 'Unknown',
+                'message' => isset($post['message']) ? $post['message'] : 'No message',
+                'page_id' => $page_id,
+            ];
+        }
+    }
+
+    // Sort posts and reels combined by publication date
+    usort($all_posts_and_reels, 'sort_by_date');
+
+    // Start display table
+    echo '<table class="wp-list-table widefat fixed striped">';
+    echo '<thead>
+            <tr>
+                <th>Type</th>
+                <th>Thumbnail</th>
+                <th>Content</th>
+                <th>Published</th>
+                <th>View</th>
+            </tr>
+          </thead>';
+    echo '<tbody>';
+
+    // **Display combined and sorted items**
+    foreach ($all_posts_and_reels as $item) {
+        $created_time = time_elapsed($item['created_time']);  // Calculate elapsed time
+        $thumbnail_html = '';  // Initialize thumbnail variable
+
+        // Display videos (Reels)
+        if ($item['type'] == 'reel') {
+            $video_id = $item['id'];
+            $thumbnail_path = wp_upload_dir()['baseurl'] . "/usqp/facebook-feed/thumbnail_video_{$video_id}.jpg";
+            $thumbnail_html = file_exists($cache_dir . "thumbnail_video_{$video_id}.jpg")
+                ? "<img src='{$thumbnail_path}' width='120' height='80' style='object-fit:cover;border-radius:5px;' />"
+                : "<img src='https://via.placeholder.com/120x80?text=No+Preview' width='120' height='80' style='object-fit:cover;border-radius:5px;' />";
+            echo "<tr>";
+            echo "<td>🎥 Reel</td>";
+            echo "<td>{$thumbnail_html}</td>";
+            echo "<td>" . esc_html(mb_strimwidth($item['description'], 0, 100, "...")) . "</td>";
+            echo "<td>posted {$created_time}</td>";
+            echo "<td><a href='{$item['permalink_url']}' target='_blank'>🔗 View</a></td>";
+            echo "</tr>";
+        }
+
+        // Display posts
+        if ($item['type'] == 'post') {
+            $post_id = $item['id'];
+            $message = $item['message'];
+            $thumbnail_path = wp_upload_dir()['baseurl'] . "/usqp/facebook-feed/image_post_{$post_id}.jpg";
+            $thumbnail_html = file_exists($cache_dir . "image_post_{$post_id}.jpg")
+                ? "<img src='{$thumbnail_path}' width='120' height='80' style='object-fit:cover;border-radius:5px;' />"
+                : '📝';
+            $post_permalink = "https://www.facebook.com/{$item['page_id']}/posts/{$post_id}";
+
+            echo "<tr>";
+            echo "<td>📝 Post</td>";
+            echo "<td>{$thumbnail_html}</td>";
+            echo "<td>" . esc_html(mb_strimwidth($message, 0, 100, "...")) . "</td>";
+            echo "<td>posted {$created_time}</td>";
+            echo "<td><a href='{$post_permalink}' target='_blank'>🔗 View</a></td>";
+            echo "</tr>";
+        }
+    }
+
+    echo '</tbody>';
+    echo '</table>';
+}
+
+/*****************************************************************************************************************************************************/
+// 5. schedule_cache_update_task()
 // This function schedules a cron job based on the selected update frequency to automatically update the cache.
 // / Cette fonction programme une tâche cron en fonction de la fréquence de mise à jour sélectionnée pour mettre à jour automatiquement le cache.
 function schedule_cache_update_task($frequency) {
@@ -405,7 +599,7 @@ function schedule_cache_update_task($frequency) {
 }
 
 /*****************************************************************************************************************************************************/
-// 5. add_custom_cron_intervals()
+// 6. add_custom_cron_intervals()
 // This function adds custom cron intervals such as 'every_minute' to allow updates every minute.
 // / Cette fonction ajoute des intervalles cron personnalisés tels que 'every_minute' pour permettre des mises à jour toutes les minutes.
 function add_custom_cron_intervals($schedules) {
@@ -418,7 +612,7 @@ function add_custom_cron_intervals($schedules) {
 add_filter('cron_schedules', 'add_custom_cron_intervals');
 
 /*****************************************************************************************************************************************************/
-// 6. fetch_and_update_facebook_cache_cron_handler()
+// 7. fetch_and_update_facebook_cache_cron_handler()
 // This function handles the cron job for automatically updating the cache based on the scheduled frequency.
 // / Cette fonction gère la tâche cron pour la mise à jour automatique du cache en fonction de la fréquence programmée.
 function fetch_and_update_facebook_cache_cron_handler() {
