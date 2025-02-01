@@ -18,7 +18,6 @@
  *                                      / Fonction pour ajouter des intervalles cron personnalisés pour des tâches comme la mise à jour du cache toutes les minutes.
  * 7. fetch_and_update_facebook_cache_cron_handler() - Function to handle the cron job for updating the cache automatically.
  *                                      / Fonction pour gérer la tâche cron de mise à jour automatique du cache.
- *
  * 8. delete_facebook_cache() - Function to delete the cached Facebook feed data and associated media files.
  *                                     / Fonction pour supprimer les données du flux Facebook mises en cache et les fichiers multimédias associés.
  *********************************************************************************************/
@@ -328,7 +327,6 @@ function inject_cache_status_to_frontend() {
 }
 // Hook the function to the 'admin_footer' action to inject the cache status into the page
 add_action('admin_footer', 'inject_cache_status_to_frontend');
-
 
 /*****************************************************************************************************************************************************/
 /*****************************************************************************************************************************************************/
@@ -685,7 +683,6 @@ function handle_facebook_cache_selection_update() {
 }
 add_action('wp_ajax_update_facebook_cache', 'handle_facebook_cache_selection_update');
 
-
 /*****************************************************************************************************************************************************/
 // 5. schedule_cache_update_task()
 // This function schedules a cron job based on the selected update frequency to automatically update the cache.
@@ -754,7 +751,6 @@ function fetch_and_update_facebook_cache_cron_handler() {
     fetch_and_update_facebook_cache();
 }
 add_action('usqp_facebook_feed_cache_update_cron', 'fetch_and_update_facebook_cache_cron_handler');
-
 
 /*****************************************************************************************************************************************************/
 // 8. delete_facebook_cache()

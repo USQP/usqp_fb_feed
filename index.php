@@ -80,11 +80,14 @@ define('USQP_FB_FEED_URL', plugin_dir_url(__FILE__));
  *    - token_management.php: Manages the Facebook access token.
  *          / Gère le jeton d'accès Facebook.
  *    - cache_management.php: Manages Facebook feed cache.
- *          / Gère le cache des flux Facebook. */
+ *          / Gère le cache des flux Facebook.
+ *    - frontend_integration.php: Handles the frontend display of the Facebook feed, 
+ *          / Gère l'affichage frontend du flux Facebook */
 
 require_once USQP_FB_FEED_DIR . 'menu.php';
 require_once USQP_FB_FEED_DIR . 'token_management.php';
 require_once USQP_FB_FEED_DIR . 'cache_management.php';
+require_once USQP_FB_FEED_DIR . 'frontend_integration.php';
 
 /*********************************************************************************************
  * Create custom table when plugin is activated
@@ -129,3 +132,7 @@ register_activation_hook(__FILE__, 'create_usqp_facebook_feed_table');
  *          / Ajoute le menu du plugin dans l'interface d'administration de WordPress. */
 
 add_action('admin_menu', 'usqp_fb_feed_admin_menu');
+
+/*********************************************************************************************/
+
+
