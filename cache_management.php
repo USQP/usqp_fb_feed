@@ -10,8 +10,8 @@
  *                                     / Ces fonctions enfilent un script pour vérifier l'état de la mise à jour du cache Facebook et afficher une notification si le cache est en cours de mise à jour.
  * 3. usqp_fb_feed_cache_page() - Function to display the cache management page in the WordPress admin.
  *                                      / Fonction pour afficher la page de gestion du cache dans l'admin WordPress.
- * 4. display_facebook_cache_admin() - Displays a table of cached Facebook posts and reels
- *                                      / Affiche les publications et reels Facebook mis en cache dans un tableau.
+ * 4. display_facebook_cache_admin() // handle_facebook_cache_selection_update() - Displays a table of cached Facebook posts and reels for select content to display on the frontend.
+ *                                      / Affiche les publications et reels Facebook mis en cache dans un tableau pour sélectionner le contenu à afficher sur le frontend.
  * 5. schedule_cache_update_task() - Function to schedule the cache update task based on the selected frequency.
  *                                      / Fonction pour programmer la tâche de mise à jour du cache en fonction de la fréquence sélectionnée.
  * 6. add_custom_cron_intervals() - Function to add custom cron intervals for tasks like updating the cache every minute.
@@ -170,6 +170,37 @@ function fetch_and_update_facebook_cache() {
         }
     }
 
+// Check if selected_content.json exists, if not, create it
+$selected_content_file = $cache_dir . 'selected_content.json';
+
+if (!file_exists($selected_content_file)) {
+    // Collect all post and reel IDs
+    $selected_ids = [];
+
+    // Add post IDs to the selected_ids array
+    if (isset($posts['data']) && !empty($posts['data'])) {
+        foreach ($posts['data'] as $post) {
+            if (isset($post['type']) && $post['type'] === 'story') {
+                continue;
+            }
+
+            // Add post ID to the selected IDs
+            $selected_ids[] = $post['id'];
+        }
+    }
+
+    // Add reel IDs to the selected_ids array
+    if (!empty($reels)) {
+        foreach ($reels as $reel) {
+            // Add reel ID to the selected IDs
+            $selected_ids[] = $reel['id'];
+        }
+    }
+
+    // If the file doesn't exist, create it and write the selected IDs
+    file_put_contents($selected_content_file, json_encode($selected_ids, JSON_PRETTY_PRINT));
+}
+
     // Update the last cache update date
     $wpdb->update(
         $table_name,
@@ -228,7 +259,7 @@ if (isset($current_screen->id) && (
                         } else {
                             removeNotice();
                             $('input[name="update_facebook_cache"]').prop('disabled', false); // Enable the button
-                            $('input[name="delete_facebook_cache"]').prop('disabled', fasle); 
+                            $('input[name="delete_facebook_cache"]').prop('disabled', false); 
                         }
                     }
                 });
@@ -433,6 +464,17 @@ function display_facebook_cache_admin() {
         return;
     }
 
+    // Load selected content from the JSON file
+    $selected_content_file = $cache_dir . 'selected_content.json';
+    $selected_items = [];
+    if (file_exists($selected_content_file)) {
+        $selected_items = json_decode(file_get_contents($selected_content_file), true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            echo "<p>Error in decoding the selected content JSON data.</p>";
+            return;
+        }
+    }
+
     // Function to calculate elapsed time
     function time_elapsed($timestamp) {
         $timestamp = strtotime($timestamp);
@@ -501,9 +543,11 @@ function display_facebook_cache_admin() {
     usort($all_posts_and_reels, 'sort_by_date');
 
     // Start display table
+    echo '<form method="post" action="">'; // Form to submit selected posts and reels
     echo '<table class="wp-list-table widefat fixed striped">';
     echo '<thead>
             <tr>
+                <th>Select</th>
                 <th>Type</th>
                 <th>Thumbnail</th>
                 <th>Content</th>
@@ -518,6 +562,9 @@ function display_facebook_cache_admin() {
         $created_time = time_elapsed($item['created_time']);  // Calculate elapsed time
         $thumbnail_html = '';  // Initialize thumbnail variable
 
+        // Check if the item is already selected
+        $is_selected = in_array($item['id'], $selected_items);
+
         // Display videos (Reels)
         if ($item['type'] == 'reel') {
             $video_id = $item['id'];
@@ -525,7 +572,9 @@ function display_facebook_cache_admin() {
             $thumbnail_html = file_exists($cache_dir . "thumbnail_video_{$video_id}.jpg")
                 ? "<img src='{$thumbnail_path}' width='120' height='80' style='object-fit:cover;border-radius:5px;' />"
                 : "<img src='https://via.placeholder.com/120x80?text=No+Preview' width='120' height='80' style='object-fit:cover;border-radius:5px;' />";
+
             echo "<tr>";
+            echo "<td><input type='checkbox' name='selected_items[]' value='{$item['id']}' " . ($is_selected ? 'checked' : '') . " /></td>";
             echo "<td>🎥 Reel</td>";
             echo "<td>{$thumbnail_html}</td>";
             echo "<td>" . esc_html(mb_strimwidth($item['description'], 0, 100, "...")) . "</td>";
@@ -545,6 +594,7 @@ function display_facebook_cache_admin() {
             $post_permalink = "https://www.facebook.com/{$item['page_id']}/posts/{$post_id}";
 
             echo "<tr>";
+            echo "<td><input type='checkbox' name='selected_items[]' value='{$item['id']}' " . ($is_selected ? 'checked' : '') . " /></td>";
             echo "<td>📝 Post</td>";
             echo "<td>{$thumbnail_html}</td>";
             echo "<td>" . esc_html(mb_strimwidth($message, 0, 100, "...")) . "</td>";
@@ -556,7 +606,85 @@ function display_facebook_cache_admin() {
 
     echo '</tbody>';
     echo '</table>';
+    
+    // Submit button for selected posts and reels
+    echo '<input type="submit" id="update-selections-btn" value="Update Selections" class="button-primary" />';
+    echo '</form>';
+    ?>
+
+<script type="text/javascript">
+    jQuery(document).ready(function($){
+    // Intercept the click only on the "Update Selections" button
+    $('#update-selections-btn').on('click', function(event){
+        event.preventDefault(); 
+
+        var selectedItems = [];
+        $('input[name="selected_items[]"]:checked').each(function(){
+            selectedItems.push($(this).val());  // Collect the IDs of selected items
+        });
+
+        // Perform the AJAX request
+        $.ajax({
+            url: ajaxurl,  // URL for the WordPress AJAX action
+            method: 'POST',
+            data: {
+                action: 'update_facebook_cache',  // Action hook defined in functions.php
+                nonce: '<?php echo wp_create_nonce('update_facebook_cache_nonce'); ?>', // Security nonce
+                selected_items: selectedItems  // Send the selected items
+            },
+            success: function(response) {
+                // Remove all existing notifications
+                $('.updated, .error').remove();
+
+                // Check if the response is success or error
+                var message = response.success ? response.data.message : response.data.message;
+                var className = response.success ? 'updated' : 'error';  // Success or error CSS class
+
+                // Add the notification to the main wrap of the admin
+                $('.wrap').prepend('<div class="' + className + '"><p>' + message + '</p></div>');
+
+                // Scroll to the top of the page
+                window.scrollTo({ top: 0, behavior: 'smooth' });  // Smooth scroll to the top
+            },
+            error: function() {
+                alert('An error occurred while updating the selections.');
+            }
+        });
+    });
+});
+
+</script>
+
+<?php
 }
+
+
+// Register the AJAX action for updating selections
+function handle_facebook_cache_selection_update() {
+    // Verify the nonce for security
+    if ( !isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'update_facebook_cache_nonce') ) {
+        wp_send_json_error(array('message' => 'Invalid security nonce.'));
+    }
+
+    // Get the selected items via the AJAX request
+    if (isset($_POST['selected_items'])) {
+        $selected_items = $_POST['selected_items'];
+        
+        // Update the JSON file with the selected items
+        $cache_dir = wp_upload_dir()['basedir'] . '/usqp/facebook-feed/';
+        $selected_content_file = $cache_dir . 'selected_content.json';
+        
+        // Save the selections to the file
+        file_put_contents($selected_content_file, json_encode($selected_items, JSON_PRETTY_PRINT));
+
+        // Respond with a success message
+        wp_send_json_success(array('message' => 'The selected items have been successfully updated.'));
+    } else {
+        wp_send_json_error(array('message' => 'No items selected. No changes have been saved. Please select at least one item.'));
+    }
+}
+add_action('wp_ajax_update_facebook_cache', 'handle_facebook_cache_selection_update');
+
 
 /*****************************************************************************************************************************************************/
 // 5. schedule_cache_update_task()
