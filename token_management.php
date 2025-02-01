@@ -397,6 +397,19 @@ function disconnect_facebook_action() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'usqp_facebook_feed';
 
+        // Define the cache directory path
+        $cache_dir = wp_upload_dir()['basedir'] . '/usqp/facebook-feed/';
+    
+        //  Delete the cache files
+        if (is_dir($cache_dir)) {
+            $files = glob($cache_dir . "*"); // Get all files in the directory
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    unlink($file); // Delete the file
+                }
+            }
+        }
+
     // Delete the data from the database
     $wpdb->query("DELETE FROM $table_name");
 
@@ -419,7 +432,6 @@ function disconnect_facebook_action() {
 
     // Prevent automatic rescheduling of cron jobs (if applicable)
     wp_clear_scheduled_hook('usqp_facebook_feed_update_cache_cron');
-    wp_clear_scheduled_hook('update_cache_facebook_cron');
     wp_clear_scheduled_hook('usqp_facebook_feed_token_update_cron');
 
     wp_send_json_success([ 
