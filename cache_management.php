@@ -567,9 +567,9 @@ function display_facebook_cache_admin() {
         if ($item['type'] == 'reel') {
             $video_id = $item['id'];
             $thumbnail_path = wp_upload_dir()['baseurl'] . "/usqp/facebook-feed/thumbnail_video_{$video_id}.jpg";
-            $thumbnail_html = file_exists($cache_dir . "thumbnail_video_{$video_id}.jpg")
-                ? "<img src='{$thumbnail_path}' width='120' height='80' style='object-fit:cover;border-radius:5px;' />"
-                : "<img src='https://via.placeholder.com/120x80?text=No+Preview' width='120' height='80' style='object-fit:cover;border-radius:5px;' />";
+            $thumbnail_html = file_exists($cache_dir . "thumbnail_video_{$video_id}.jpg") 
+            ? "<img src='{$thumbnail_path}' width='120' height='80' style='object-fit:cover;border-radius:5px;' />":
+            '🎥';
 
             echo "<tr>";
             echo "<td><input type='checkbox' name='selected_items[]' value='{$item['id']}' " . ($is_selected ? 'checked' : '') . " /></td>";
