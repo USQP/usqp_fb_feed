@@ -6,14 +6,17 @@
  *
  * 1. enqueue_slick_slider() - Loads the necessary Slick slider scripts and styles.
  *                                      / Charge les scripts et styles nécessaires pour le slider Slick.
- * 2. enqueue_facebook_feed_styles() - Function to include the specific Facebook feed CSS file in the frontend.
- *                                     / Fonction pour inclure le fichier CSS spécifique au flux Facebook dans le frontend.
- * 3. add_shortcode('usqp_fb_feed', 'display_feed_frontend') - Registers a shortcode [usqp_fb_feed] that outputs the Facebook feed by calling the display_feed_frontend() function.
+ * 2. add_shortcode('usqp_fb_feed', 'display_feed_frontend') - Registers a shortcode [usqp_fb_feed] that outputs the Facebook feed by calling the display_feed_frontend() function.
  *                                     / Enregistre un shortcode [usqp_fb_feed] qui affiche le flux Facebook en appelant la fonction display_feed_frontend().
- * 4. render_facebook_feed() - Displays the Facebook feed by loading cached data (posts, reels, page info).
+ * 3. enqueue_font_awesome() - Loads the necessary Font Awesome styles.
+ *                                     / Charge les styles nécessaires pour Font Awesome.
+ * 4. enqueue_facebook_feed_styles() - Function to include the specific Facebook feed CSS file in the frontend.
+ *                                     / Fonction pour inclure le fichier CSS spécifique au flux Facebook dans le frontend.
+ * 5. render_facebook_feed() - Displays the Facebook feed by loading cached data (posts, reels, page info).
  *                                      / Affiche le flux Facebook en chargeant les données mises en cache (publications, reels, infos page).
  * 
  *********************************************************************************************/
+
 // 1. enqueue_slick_slider()
 // Loads the necessary Slick slider scripts and styles.
 // / Charge les scripts et styles nécessaires pour le slider Slick.
@@ -28,13 +31,22 @@ function enqueue_slick_slider() {
 
 add_action('wp_enqueue_scripts', 'enqueue_slick_slider');
 
-
 // 2. add_shortcode('usqp_fb_feed', 'display_feed_frontend')
 // Registers a shortcode [usqp_fb_feed] that outputs the Facebook feed by calling the display_feed_frontend() function.
 // / Enregistre un shortcode [usqp_fb_feed] qui affiche le flux Facebook en appelant la fonction display_feed_frontend().
 add_shortcode('usqp_fb_feed', 'display_feed_frontend');
 
-// 3. enqueue_facebook_feed_styles()
+// 3. enqueue_font_awesome()
+// Loads the necessary Font Awesome styles.
+// / Charge les styles nécessaires pour Font Awesome.
+function enqueue_font_awesome() {
+    // Add the CSS file for Font Awesome
+    wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
+}
+
+add_action('wp_enqueue_scripts', 'enqueue_font_awesome');
+
+// 4. enqueue_facebook_feed_styles()
 // Fonction pour inclure le fichier CSS spécifique au flux Facebook dans le frontend.
 // / Cette fonction charge le fichier CSS 'facebook-feed.css' uniquement sur les pages où le shortcode [usqp_fb_feed] est utilisé.
 function enqueue_facebook_feed_styles() {
@@ -44,9 +56,7 @@ function enqueue_facebook_feed_styles() {
 
 add_action('wp_enqueue_scripts', 'enqueue_facebook_feed_styles');
 
-
-
-// 3. display_feed_frontend()
+// 5. display_feed_frontend()
 // Displays the Facebook feed by loading cached data (posts, reels, page info).
 // / Affiche le flux Facebook en chargeant les données mises en cache (publications, reels, infos page).
 function display_feed_frontend($atts) {
@@ -220,8 +230,10 @@ function display_feed_frontend($atts) {
 
         $output .= "<div class='fb_global_info'>";
         $output .= "<div class='page-logo'><img src='{$profile_picture_url}' alt='Profile Picture' width='50' height='50'></div>";
+        $output .= "<div class='post-info'>";
         $output .= "<h3>{$page_title}</h3>";
         $output .= "<p>Posted: " . time_elapsed(date('Y-m-d H:i:s', $item['date'])) . "</p>";
+        $output .= "</div>";
         $output .= "</div>";
 
         $output .= "<div class='fb_content'>";
@@ -278,12 +290,13 @@ function display_feed_frontend($atts) {
                     speed: 500,
                     pauseOnHover: true,
                     pauseOnFocus: true,
-                    prevArrow: '<button type=\"button\" class=\"slick-prev\"><i class=\"fa fa-chevron-left\"></i></button>',
-                    nextArrow: '<button type=\"button\" class=\"slick-next\"><i class=\"fa fa-chevron-right\"></i></button>' 
+                    prevArrow: '<button type=\"button\" class=\"slick-prev\"></button>',
+                    nextArrow: '<button type=\"button\" class=\"slick-next\"></button>' 
                 });
             }
         });
-    </script>";
+    </script>
+    ";
 
     return $output;
 }

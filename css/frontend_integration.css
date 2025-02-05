@@ -1,0 +1,205 @@
+/* Global selector */
+.facebook-feed {
+    padding: 20px;
+    font-family: Jost;
+}
+
+/* Slider_skin selector */
+.facebook-feed.slider {
+    background-color: white;
+    border: 2px solid black;
+    border-radius: 10px;
+    box-shadow: 5px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.facebook-feed.slider .slick-arrow {
+    z-index: 1;
+    padding: 20px 20px;
+    color: #000;
+    border: 2px solid #000;
+    background: #F1ECE5;
+    box-shadow: 5px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 50px;
+    transition: all 0.5s cubic-bezier(0.3, 0, 0.3, 1);
+}
+
+.facebook-feed.slider .slick-arrow:hover{
+    background-color: #33A487;
+    color: white;
+    border-color: black;
+}
+
+.facebook-feed.slider .slick-arrow::before {
+    color: #000;
+    margin: -50px;
+    line-height: 2px;
+    transition: all 0.5s cubic-bezier(0.3, 0, 0.3, 1);
+}
+
+.facebook-feed.slider .slick-arrow:hover::before {
+    color: white;
+}
+
+.facebook-feed.slider .slick-next::before {
+    font-family: FontAwesome;
+    content: "\f054";
+    margin: -5px;
+}
+
+.facebook-feed.slider .slick-prev::before {
+    font-family: FontAwesome;
+    content: "\f053";
+    margin: -10px;
+}
+
+.facebook-feed.slider  .slick-dots {
+   bottom: -50px;
+}
+
+.facebook-feed.slider .slick-dots li button::before {
+    font-family: FontAwesome;
+    content: "\f111";
+    font-size: 15px;
+}
+
+/* List_skin selector */
+.facebook-feed.list {
+    display: block;
+}
+
+.facebook-feed.list .feed-item {
+    padding: 20px;
+    background-color: white;
+    border: 2px solid black;
+    border-radius: 10px;
+    box-shadow: 5px 5px rgba(0, 0, 0, 0.2);
+    margin: 20px;
+} 
+
+
+/* fb_media sleector */
+.facebook-feed .fb_media {
+    height: 400px;
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+}
+
+.facebook-feed .fb_media video {
+    height: 100%;
+    border-radius: 20px;
+    border: 2px solid black;
+    border-radius: 10px;
+    box-shadow: 5px 5px rgba(0, 0, 0, 0.2);
+}
+
+.facebook-feed .fb_media img {
+    height: 100%;
+    object-fit: contain;
+}
+
+/* fb_global_info selector */
+.facebook-feed .fb_global_info {
+    display: flex;
+    justify-content: flex-start;
+    padding: 10px;
+}
+
+.facebook-feed .fb_global_info .page-logo{
+    
+}
+
+.facebook-feed .fb_global_info .page-logo img{
+    border-radius: 40px;
+}
+
+.facebook-feed .fb_global_info .post-info{
+    padding-left: 10px;
+        
+}
+
+.facebook-feed .fb_global_info .post-info h3{
+    margin: 0px;
+    font-size: 20px;
+}
+
+.facebook-feed .fb_global_info .post-info p{
+    margin: 0px;
+    font-size: 14px; 
+}
+
+/* fb_content selector */
+.facebook-feed .fb_content {
+    padding:0 40px;
+    height: 150px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    text-align: justify;
+
+        /* Hide default scrollbar, but but allows scrolling */
+        scrollbar-width: thin; /* For Firefox */
+        scrollbar-color: rgba(0, 0, 0, 0.3) transparent; /* ForFirefox */
+}
+
+    /* For Chrome, Edge et Safari */
+    .facebook-feed .fb_content::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .facebook-feed .fb_content::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.3); 
+        border-radius: 10px;
+    }
+
+    .facebook-feed .fb_content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+.facebook-feed .fb_content .short-text {
+}
+
+.facebook-feed .fb_content .full-text {
+    
+}
+
+.facebook-feed .fb_content .read-more {
+}
+
+.facebook-feed .fb_content .read-less{
+}
+
+/* fb_link selector */
+.facebook-feed .fb_view-link {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: 10px 40px;
+}
+
+.facebook-feed .fb_view-link a {
+    align-self: center;
+    width: fit-content;
+    padding: 5px 40px;
+    font-size: 14px;
+    color: #000 ;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: center;
+    border: 2px solid #000 ;
+    background: #F1ECE5;
+    box-shadow: 5px 5px rgba(0, 0, 0, 0.2) !;
+    border-radius: 50px;
+    transition: all 0.7s cubic-bezier(0.3, 0, 0.3, 1);
+}
+
+.facebook-feed .fb_view-link a:hover {
+    text-decoration: none;
+    background-color: #33A487;
+    color: white;
+    border-color: black;
+}
