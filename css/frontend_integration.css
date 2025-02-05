@@ -1,3 +1,25 @@
+/*********************************************************************************************
+ * Summary for the frontend_integration.css file
+ * Sommaire pour le fichier frontend_integration.css
+ *********************************************************************************************
+ *
+ * 1. Global selector - Styles applied to the entire Facebook feed container.
+ *                                      / Sélecteur global - Styles appliqués au conteneur entier du flux Facebook.
+ * 2. Slider_skin selector  - Styles for the slider layout of the Facebook feed.
+ *                                      / Sélecteur slider_skin - Styles pour la mise en page du slider du flux Facebook.
+ * 3. List_skin selector  - Styles for the list layout of the Facebook feed.
+ *                                      / Sélecteur list_skin - Styles pour la mise en page en liste du flux Facebook.
+ * 4. fb_media selector  - Styles for media (videos/images) within the Facebook feed.
+ *                                      / Sélecteur fb_media - Styles pour les médias (vidéos/images) dans le flux Facebook.
+ * 5. fb_global_info selector  - Layout and styles for the global info section (page logo, post info).
+ *                                      / Sélecteur fb_global_info - Mise en page et styles pour la section d'infos globales (logo de page, infos de publication).
+ * 6. fb_content selector  - Layout and styles for the content section of the feed.
+ *                                      / Sélecteur fb_content - Mise en page et styles pour la section de contenu du flux.
+ * 7. fb_link selector - Styles for the view link button within the Facebook feed.
+ *                                      / Sélecteur fb_link - Styles pour le bouton de lien de vue dans le flux Facebook.
+ *
+ *********************************************************************************************/
+
 /* Global selector */
 .facebook-feed {
     padding: 20px;
@@ -192,7 +214,7 @@
     text-align: center;
     border: 2px solid #000 ;
     background: #F1ECE5;
-    box-shadow: 5px 5px rgba(0, 0, 0, 0.2) !;
+    box-shadow: 5px 5px rgba(0, 0, 0, 0.2);
     border-radius: 50px;
     transition: all 0.7s cubic-bezier(0.3, 0, 0.3, 1);
 }
