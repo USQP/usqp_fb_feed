@@ -55,8 +55,8 @@ function fetch_and_update_facebook_cache() {
     }
 
     // Call Facebook API to fetch videos and posts (excluding stories)
-    $video_response = @file_get_contents("https://graph.facebook.com/v21.0/{$page_id}/videos?access_token={$access_token}");
-    $post_response = @file_get_contents("https://graph.facebook.com/v21.0/{$page_id}/posts?access_token={$access_token}");
+    $video_response = @file_get_contents("https://graph.facebook.com/v22.0/{$page_id}/videos?access_token={$access_token}");
+    $post_response = @file_get_contents("https://graph.facebook.com/v22.0/{$page_id}/posts?access_token={$access_token}");
 
     // Check if video and post responses are valid
     if ($video_response === FALSE || $post_response === FALSE) {
@@ -66,7 +66,7 @@ function fetch_and_update_facebook_cache() {
     }
 
     // Fetch page information (name and profile picture)
-    $page_info_response = @file_get_contents("https://graph.facebook.com/v21.0/{$page_id}?fields=name,picture&access_token={$access_token}");
+    $page_info_response = @file_get_contents("https://graph.facebook.com/v22.0/{$page_id}?fields=name,picture&access_token={$access_token}");
     $page_info = json_decode($page_info_response, true);
 
     // Check if page data is valid
@@ -104,7 +104,7 @@ function fetch_and_update_facebook_cache() {
             }
 
             $video_id = $video['id'];
-            $video_details_response = @file_get_contents("https://graph.facebook.com/v21.0/{$video_id}?fields=source,title,description,likes.summary(true),permalink_url,updated_time,picture&access_token={$access_token}");
+            $video_details_response = @file_get_contents("https://graph.facebook.com/v22.0/{$video_id}?fields=source,title,description,likes.summary(true),permalink_url,updated_time,picture&access_token={$access_token}");
             $video_details = json_decode($video_details_response, true);
 
             if (isset($video_details['source'])) {
@@ -148,7 +148,7 @@ function fetch_and_update_facebook_cache() {
             }
 
             $post_id = $post['id'];
-            $post_details_response = @file_get_contents("https://graph.facebook.com/v21.0/{$post_id}?fields=message,permalink_url,updated_time,attachments,likes.summary(true)&access_token={$access_token}");
+            $post_details_response = @file_get_contents("https://graph.facebook.com/v22.0/{$post_id}?fields=message,permalink_url,updated_time,attachments,likes.summary(true)&access_token={$access_token}");
             $post_details = json_decode($post_details_response, true);
 
             // Download attached image or media (if available)

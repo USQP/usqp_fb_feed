@@ -42,7 +42,7 @@ function add_facebook_sdk() {
               appId      : "<?php echo getenv('FB_APP_ID'); ?>", // Inject App ID from PHP
               cookie     : true,
               xfbml      : true,
-              version    : 'v21.0'
+              version    : 'v22.0'
             });
             FB.AppEvents.logPageView();   
           };
@@ -154,7 +154,7 @@ function save_token() {
         // Fetch environment variables
         $app_id = getenv('FB_APP_ID'); 
         $app_secret = getenv('FB_APP_SECRET');
-        $debug_url = "https://graph.facebook.com/v21.0/debug_token?input_token={$access_token}&access_token={$app_id}|{$app_secret}";
+        $debug_url = "https://graph.facebook.com/v22.0/debug_token?input_token={$access_token}&access_token={$app_id}|{$app_secret}";
         
         // Call the API to check if the token is already a long-lived token
         $response = wp_remote_get($debug_url);
@@ -175,7 +175,7 @@ function save_token() {
             $next_renewal_time = date('Y-m-d H:i:s', strtotime($expiration_time) - (60 * 60 * 24 * 30)); // Renew 30 days before expiration
         } else {
             // Otherwise, convert the token to a long-lived token
-            $long_token_url = "https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id={$app_id}&client_secret={$app_secret}&fb_exchange_token={$access_token}";
+            $long_token_url = "https://graph.facebook.com/v22.0/oauth/access_token?grant_type=fb_exchange_token&client_id={$app_id}&client_secret={$app_secret}&fb_exchange_token={$access_token}";
 
             $response = wp_remote_get($long_token_url);
             if (is_wp_error($response)) {
@@ -282,7 +282,7 @@ function renew_token_action() {
         // Fetch environment variables
         $app_id = getenv('FB_APP_ID');
         $app_secret = getenv('FB_APP_SECRET'); 
-        $long_token_url = "https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id={$app_id}&client_secret={$app_secret}&fb_exchange_token={$access_token}";
+        $long_token_url = "https://graph.facebook.com/v22.0/oauth/access_token?grant_type=fb_exchange_token&client_id={$app_id}&client_secret={$app_secret}&fb_exchange_token={$access_token}";
 
         $response = wp_remote_get($long_token_url);
         if (is_wp_error($response)) {
@@ -351,7 +351,7 @@ function auto_renew_token_cron_handler() {
     if ($row) {
         $page_id = $row->page_id;
         $access_token = $row->page_access_token;
-        $url = "https://graph.facebook.com/v21.0/{$page_id}?fields=access_token&access_token={$access_token}";
+        $url = "https://graph.facebook.com/v22.0/{$page_id}?fields=access_token&access_token={$access_token}";
         $response = wp_remote_get($url);
 
         if (!is_wp_error($response)) {
@@ -475,7 +475,7 @@ function usqp_fb_feed_token_page() {
                         appId      : "<?php echo getenv('FB_APP_ID'); ?>", // Inject App ID from PHP
                         cookie     : true,
                         xfbml      : true,
-                        version    : 'v21.0'
+                        version    : 'v22.0'
                     });
                     FB.AppEvents.logPageView();
                     console.log('Facebook SDK loaded');
