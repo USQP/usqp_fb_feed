@@ -167,36 +167,56 @@ function fetch_and_update_facebook_cache() {
         }
     }
 
-// Check if selected_content.json exists, if not, create it
+
 $selected_content_file = $cache_dir . 'selected_content.json';
 
-if (!file_exists($selected_content_file)) {
-    // Collect all post and reel IDs
-    $selected_ids = [];
+// Save the last cache update date in the database
+$table_name = $wpdb->prefix . 'usqp_facebook_feed';
+$row = $wpdb->get_row("SELECT * FROM $table_name ORDER BY id DESC LIMIT 1");
+$last_cache_update = $row ? $row->last_cache_update : null;
+$selected_ids = [];
 
-    // Add post IDs to the selected_ids array
-    if (isset($posts['data']) && !empty($posts['data'])) {
-        foreach ($posts['data'] as $post) {
-            if (isset($post['type']) && $post['type'] === 'story') {
-                continue;
-            }
+// Load existing selected content IDs
+if (file_exists($selected_content_file)) {
+    $existing_ids = json_decode(file_get_contents($selected_content_file), true);
+    if (!is_array($existing_ids)) {
+        $existing_ids = [];
+    }
+} else {
+    $existing_ids = [];
+}
 
-            // Add post ID to the selected IDs
+// Function to check if a post is newer than the last cache update
+function is_newer_post($post_date, $last_cache_update)
+{
+    return $last_cache_update === null || strtotime($post_date) > strtotime($last_cache_update);
+}
+
+// Add new posts
+if (isset($posts['data']) && !empty($posts['data'])) {
+    foreach ($posts['data'] as $post) {
+        if (isset($post['type']) && $post['type'] === 'story') {
+            continue;
+        }
+
+        if (isset($post['created_time']) && is_newer_post($post['created_time'], $last_cache_update)) {
             $selected_ids[] = $post['id'];
         }
     }
+}
 
-    // Add reel IDs to the selected_ids array
-    if (!empty($reels)) {
-        foreach ($reels as $reel) {
-            // Add reel ID to the selected IDs
+// Add new reels
+if (!empty($reels)) {
+    foreach ($reels as $reel) {
+        if (isset($reel['updated_time']) && is_newer_post($reel['updated_time'], $last_cache_update)) {
             $selected_ids[] = $reel['id'];
         }
     }
-
-    // If the file doesn't exist, create it and write the selected IDs
-    file_put_contents($selected_content_file, json_encode($selected_ids, JSON_PRETTY_PRINT));
 }
+
+// Merge and save the selected content IDs
+$final_ids = array_values(array_unique(array_merge($existing_ids, $selected_ids)));
+file_put_contents($selected_content_file, json_encode($final_ids, JSON_PRETTY_PRINT));
 
     // Update the last cache update date
     $wpdb->update(
@@ -211,7 +231,7 @@ if (!file_exists($selected_content_file)) {
 
     // Remove the transient after the operation
     delete_transient('facebook_cache_update_in_progress');
-    
+
     return "Information and media have been successfully updated.";
 }
 
