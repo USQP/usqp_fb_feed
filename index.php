@@ -82,12 +82,15 @@ define('USQP_FB_FEED_URL', plugin_dir_url(__FILE__));
  *    - cache_management.php: Manages Facebook feed cache.
  *          / Gère le cache des flux Facebook.
  *    - frontend_integration.php: Handles the frontend display of the Facebook feed, 
- *          / Gère l'affichage frontend du flux Facebook */
+ *          / Gère l'affichage frontend du flux Facebook
+ *    - frontend_integration_management.php: Handles the frontend integration settings and CSS customization.
+*          / Gère les paramètres d'intégration frontend et la personnalisation CSS. */
 
 require_once USQP_FB_FEED_DIR . 'menu.php';
 require_once USQP_FB_FEED_DIR . 'token_management.php';
 require_once USQP_FB_FEED_DIR . 'cache_management.php';
 require_once USQP_FB_FEED_DIR . 'frontend_integration.php';
+require_once USQP_FB_FEED_DIR . 'frontend_integration_management.php';
 
 /*********************************************************************************************
  * Create custom table when plugin is activated

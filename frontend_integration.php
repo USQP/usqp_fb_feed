@@ -50,8 +50,18 @@ add_action('wp_enqueue_scripts', 'enqueue_font_awesome');
 // Fonction pour inclure le fichier CSS spécifique au flux Facebook dans le frontend.
 // / Cette fonction charge le fichier CSS 'facebook-feed.css' uniquement sur les pages où le shortcode [usqp_fb_feed] est utilisé.
 function enqueue_facebook_feed_styles() {
-    // Charge le fichier CSS 'facebook-feed.css' situé dans le dossier 'css' du plugin.
-    wp_enqueue_style('facebook-feed-style', plugin_dir_url(__FILE__) . 'css/frontend_integration.css');
+    // Define the paths for the CSS files
+    $default_css_file = plugin_dir_url(__FILE__) . 'css/frontend_integration.css';
+    $custom_css_file = plugin_dir_url(__FILE__) . 'css/custom_frontend_integration.css';
+
+    // Check if the custom CSS file exists
+    if (file_exists(plugin_dir_path(__FILE__) . 'css/custom_frontend_integration.css')) {
+        // If the custom file exists, load custom_frontend_integration.css
+        wp_enqueue_style('facebook-feed-style', $custom_css_file);
+    } else {
+        // Otherwise, load the default CSS file
+        wp_enqueue_style('facebook-feed-style', $default_css_file);
+    }
 }
 
 add_action('wp_enqueue_scripts', 'enqueue_facebook_feed_styles');
@@ -297,6 +307,5 @@ function display_feed_frontend($atts) {
         });
     </script>
     ";
-
     return $output;
 }

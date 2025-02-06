@@ -18,34 +18,45 @@
 function usqp_fb_feed_admin_menu() {
     // Add the main menu page for USQP Facebook Feed
     add_menu_page(
-        'USQP Facebook Feed', // Page title
-        'USQP Facebook Feed', // Menu title
-        'manage_options',     // Capability required to access the menu
-        'usqp_fb_feed',       // Menu slug (URL)
-        'usqp_fb_feed_main_page', // Callback function to display the page content
-        'dashicons-facebook', // Icon for the menu
-        100                   // Position in the menu
+        'USQP Facebook Feed',                   // Page title
+        'USQP Facebook Feed',                   // Menu title
+        'manage_options',                       // Capability required to access the menu
+        'usqp_fb_feed',                         // Menu slug (URL)
+        'usqp_fb_feed_main_page',               // Callback function to display the page content
+        'dashicons-facebook',                   // Icon for the menu
+        100                                      // Position in the menu
     );
 
     // Add the submenu page for Token Management under the main menu
     add_submenu_page(
-        'usqp_fb_feed',                     // Parent slug (the main menu)
-        'Connexion et Gestion du Token',    // Page title
-        'Gestion du Token',                 // Menu title
-        'manage_options',                   // Capability required to access the menu
-        'usqp_fb_feed_token_management',    // Menu slug (URL)
-        'usqp_fb_feed_token_page'           // Callback function for the submenu page
+        'usqp_fb_feed',                         // Parent slug (the main menu)
+        'Connexion et Gestion du Token',        // Page title
+        'Gestion du Token',                     // Menu title
+        'manage_options',                       // Capability required to access the menu
+        'usqp_fb_feed_token_management',        // Menu slug (URL)
+        'usqp_fb_feed_token_page'               // Callback function for the submenu page
     );
 
     // Add the submenu page for Cache Management under the main menu
     add_submenu_page(
-        'usqp_fb_feed',                     // Parent slug (the main menu)
-        'Gestion du Cache',                 // Page title
-        'Gestion du Cache',                 // Menu title
-        'manage_options',                   // Capability required to access the menu
-        'usqp_fb_feed_cache_management',    // Menu slug (URL)
-        'usqp_fb_feed_cache_page'           // Callback function for the submenu page
+        'usqp_fb_feed',                         // Parent slug (the main menu)
+        'Gestion du Cache',                     // Page title
+        'Gestion du Cache',                     // Menu title
+        'manage_options',                       // Capability required to access the menu
+        'usqp_fb_feed_cache_management',        // Menu slug (URL)
+        'usqp_fb_feed_cache_page'               // Callback function for the submenu page
     );
+
+    // Frontend Integration submenu
+        add_submenu_page(
+        'usqp_fb_feed',                         // Parent slug (the main menu)
+        'Intégration Frontend',                 // Page title
+        'Intégration Frontend',                 // Menu title
+        'manage_options',                       // Capability required to access the menu
+        'usqp_fb_feed_integration_management',  // Menu slug (URL)
+        'usqp_fb_feed_integration_page'         // Callback function for the submenu page
+    );
+
 }
 add_action('admin_menu', 'usqp_fb_feed_admin_menu');
 
