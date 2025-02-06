@@ -18,8 +18,6 @@
  *                                      / Fonction pour ajouter des intervalles cron personnalisés pour des tâches comme la mise à jour du cache toutes les minutes.
  * 7. fetch_and_update_facebook_cache_cron_handler() - Function to handle the cron job for updating the cache automatically.
  *                                      / Fonction pour gérer la tâche cron de mise à jour automatique du cache.
- * 8. delete_facebook_cache() - Function to delete the cached Facebook feed data and associated media files.
- *                                     / Fonction pour supprimer les données du flux Facebook mises en cache et les fichiers multimédias associés.
  *********************************************************************************************/
 
 /*****************************************************************************************************************************************************/
@@ -213,108 +211,90 @@ if (!file_exists($selected_content_file)) {
 
     // Remove the transient after the operation
     delete_transient('facebook_cache_update_in_progress');
-
+    
     return "Information and media have been successfully updated.";
 }
 
 /*****************************************************************************************************************************************************/
 /*****************************************************************************************************************************************************/
-// 2. enqueue_cache_update_check_script() // check_cache_update_status() // inject_cache_status_to_frontend() 
-// This functions enqueues a script to check the status of the Facebook cache update and display a notification if the cache is being updated.
-//  / Ces fonctions enfilent un script pour vérifier l'état de la mise à jour du cache Facebook et afficher une notification si le cache est en cours de mise à jour.
+// 2. enqueue_cache_update_check_script() // check_facebook_cache_update()
+// This function enqueues a script to check the status of the Facebook cache update and display a notification if the cache is being updated.
+// / Ces fonctions enfilent un script pour vérifier l'état de la mise à jour du cache Facebook et afficher une notification si le cache est en cours de mise à jour.
+function enqueue_cache_update_check_script() {
+    // Skip execution if we are in the WP-CLI environment
+    if (defined('WP_CLI') && WP_CLI) {
+        return;
+    }
 
-    function enqueue_cache_update_check_script() {
-        // Vérifier si nous sommes dans l'environnement WP-CLI
-        if (defined('WP_CLI') && WP_CLI) {
-            return; // Si nous sommes dans WP-CLI, on ne charge pas le script
-        }
+    // Get the current admin screen
+    $current_screen = get_current_screen();
 
-// Check if we are on the "usqp_fb_feed" menu page or its sub-pages
-$current_screen = get_current_screen();
-// Check if the current page is the "usqp_fb_feed" menu page or one of its sub-pages
-if (isset($current_screen->id) && (
-    // Main page of the menu
+    // Check if the current screen matches any of the specified Facebook feed management pages
+    if (isset($current_screen->id) && (
+    strpos($current_screen->id, 'usqp_fb_feed') !== false ||
     strpos($current_screen->id, 'usqp_fb_feed') !== false ||
     // Sub-page for token management
-    strpos($current_screen->id, 'usqp_fb_feed_token_management') !== false ||
-    // Sub-page for cache management
-    strpos($current_screen->id, 'usqp_fb_feed_cache_management') !== false
-)) {
-    ?>
-    <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            // Function to check the cache update status via AJAX
-            function checkCacheUpdateStatus() {
-                $.ajax({
-                    url: ajaxurl, // The AJAX handler URL
-                    type: 'POST', // Send a POST request
-                    data: { action: 'check_facebook_cache_update' }, // Action to call the AJAX handler
+        strpos($current_screen->id, 'usqp_fb_feed') !== false ||
+    // Sub-page for token management
+        strpos($current_screen->id, 'usqp_fb_feed_token_management') !== false ||
+        strpos($current_screen->id, 'usqp_fb_feed_cache_management') !== false ||
+        strpos($current_screen->id, 'usqp_fb_feed_cache_page') !== false
+    )) {
+        ?>
+        <script type="text/javascript">
+            function check_cache_update_status() {
+                jQuery.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'check_facebook_cache_update', // AJAX action
+                        _wpnonce: '<?php echo wp_create_nonce("check_facebook_cache_nonce"); ?>'
+                    },
                     success: function(response) {
-                        // If the cache update is in progress, show the notification
-                        if (response === 'in_progress') {
-                            showNotice();
-                            $('input[name="update_facebook_cache"]').prop('disabled', true); // Disable the button
-                            $('input[name="delete_facebook_cache"]').prop('disabled', true); 
+                        if (response.trim() === 'in_progress') {
+                            // If the cache update is in progress, display a warning notice
+                            if (jQuery('#cache-update-notice').length === 0) {
+                                jQuery('.wrap').prepend('<div class="notice notice-warning is-dismissible" id="cache-update-notice"><p><strong>Cache update is in progress.</strong> Please wait...</p></div>');
+                            }
                         } else {
-                            removeNotice();
-                            $('input[name="update_facebook_cache"]').prop('disabled', false); // Enable the button
-                            $('input[name="delete_facebook_cache"]').prop('disabled', false); 
+                            // Remove the notice once the update is complete
+                            jQuery('#cache-update-notice').remove();
                         }
                     }
                 });
             }
 
-            // Function to display the notification if it doesn't already exist
-            function showNotice() {
-                if ($('#cache-update-notice').length === 0) {
-                    // Prepend the notification to the admin page
-                    $('.wrap').prepend('<div class="notice notice-warning is-dismissible" id="cache-update-notice"><p><strong>Cache update is in progress.</strong> Please wait...</p></div>');
-                }
-            }
-
-            // Function to remove the notification
-            function removeNotice() {
-                $('#cache-update-notice').fadeOut(500, function() {
-                    $(this).remove(); // Remove the notification after it fades out
-                });
-            }
-
-            // Immediate check for the cache update status when the page loads
-            if (typeof cacheStatus !== 'undefined' && cacheStatus === 'in_progress') {
-                showNotice();
-                $('input[name="update_facebook_cache"]').prop('disabled', true); // Disable the button if cache update is in progress
-            }
-
-            // Check the cache status every 1 second
-            setInterval(checkCacheUpdateStatus, 1000);
-        });
-    </script>
-    <?php
+            jQuery(document).ready(function() {
+                check_cache_update_status(); // Initial check on page load
+                setInterval(check_cache_update_status, 1000); // Check every second
+            });
+        </script>
+        <?php
+    }
 }
-}
-// Add the function to the 'admin_footer' action to inject the script in the admin footer
+// Add the script to the admin footer
 add_action('admin_footer', 'enqueue_cache_update_check_script');
 
-/**
- * AJAX callback function to check the cache update status.
- * This function is called by the JavaScript to check whether the cache update is in progress or completed.
- */
+// Check the status of the Facebook cache update.
 function check_cache_update_status() {
-    // Check if the 'facebook_cache_update_in_progress' transient is set
+    // Verify nonce for security
+    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'check_facebook_cache_nonce')) {
+        die('Invalid nonce'); // Stop execution if nonce verification fails
+    }
+
+    // Check if the transient 'facebook_cache_update_in_progress' exists
     if (get_transient('facebook_cache_update_in_progress')) {
-        echo 'in_progress'; // Return 'in_progress' if cache update is still ongoing
+        echo 'in_progress'; // Return 'in_progress' if the cache update is ongoing
     } else {
-        echo 'completed'; // Return 'completed' if the cache update is done
+        echo 'completed'; // Return 'completed' if the update is finished
     }
     wp_die(); // Terminate the AJAX request
 }
-// Hook the function to the 'wp_ajax_' action to handle AJAX requests
+// Hook the function to handle the AJAX request
 add_action('wp_ajax_check_facebook_cache_update', 'check_cache_update_status');
 
-/**
- * Inject the current cache status into frontend JavaScript for immediate use.
- * This ensures the page can immediately display the correct cache update status when it loads.
- */
+// Inject the current cache status into JavaScript for immediate use.
+// This ensures that the page can immediately display the correct cache update status upon loading.
 function inject_cache_status_to_frontend() {
     // Determine if the cache update is in progress
     $cache_in_progress = get_transient('facebook_cache_update_in_progress') ? 'in_progress' : 'completed';
@@ -337,13 +317,6 @@ function usqp_fb_feed_cache_page() {
     if (current_user_can('manage_options')) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'usqp_facebook_feed';
-
-        // Check if the user triggered a cache update
-        if (isset($_POST['update_facebook_cache'])) {
-            // Update the cache and store the update date
-            $result = fetch_and_update_facebook_cache();
-            echo '<div class="updated"><p>' . esc_html($result) . '</p></div>';
-        }
 
         // Fetch the current cache update frequency
         $frequency = get_option('facebook_cache_frequency', 'hourly'); // Default is 'hourly'
@@ -400,7 +373,7 @@ function usqp_fb_feed_cache_page() {
                 <!-- Manual Cache Update Form -->
                 <input type="submit" name="update_facebook_cache" class="button-primary" value="Update Cache Manually" />
                 <!-- Manual Cache Deletion Form -->
-                <input type="submit" name="delete_facebook_cache" class="button-primary" value="Delete Cache" onclick="return" />
+                <input type="submit" name="delete_facebook_cache" class="button-primary" value="Delete Cache"/>
             </form>
 
             <h3>Automatic Update Settings</h3>
@@ -422,6 +395,28 @@ function usqp_fb_feed_cache_page() {
         </div>
         <?php
     }
+}
+
+// Check if the user triggered a cache deletion
+if (isset($_POST['delete_facebook_cache'])) {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'usqp_facebook_feed';
+    $cache_dir = wp_upload_dir()['basedir'] . '/usqp/facebook-feed/';
+
+    // Delete all cache files
+    array_map('unlink', glob($cache_dir . "*"));
+
+    // Set last_cache_update to NULL in the database
+    $wpdb->query("UPDATE $table_name SET last_cache_update = NULL");
+
+    echo '<div class="updated"><p>Cache has been successfully deleted from files and database.</p></div>';
+}
+
+// Check if the user triggered a cache update
+if (isset($_POST['update_facebook_cache'])) {
+    // Update the cache and store the update date
+    $result = fetch_and_update_facebook_cache();
+    echo '<div class="updated"><p>' . esc_html($result) . '</p></div>';
 }
 
 /*****************************************************************************************************************************************************/
@@ -568,8 +563,8 @@ function display_facebook_cache_admin() {
             $video_id = $item['id'];
             $thumbnail_path = wp_upload_dir()['baseurl'] . "/usqp/facebook-feed/thumbnail_video_{$video_id}.jpg";
             $thumbnail_html = file_exists($cache_dir . "thumbnail_video_{$video_id}.jpg") 
-            ? "<img src='{$thumbnail_path}' width='120' height='80' style='object-fit:cover;border-radius:5px;' />":
-            '🎥';
+            ? "<img src='{$thumbnail_path}' width='120' height='80' style='object-fit:cover;border-radius:5px;' />"
+            :'🎥';
 
             echo "<tr>";
             echo "<td><input type='checkbox' name='selected_items[]' value='{$item['id']}' " . ($is_selected ? 'checked' : '') . " /></td>";
@@ -626,9 +621,9 @@ function display_facebook_cache_admin() {
             url: ajaxurl,  // URL for the WordPress AJAX action
             method: 'POST',
             data: {
-                action: 'update_facebook_cache',  // Action hook defined in functions.php
-                nonce: '<?php echo wp_create_nonce('update_facebook_cache_nonce'); ?>', // Security nonce
-                selected_items: selectedItems  // Send the selected items
+                action: 'update_facebook_cache',  
+                nonce: '<?php echo wp_create_nonce('update_facebook_cache_nonce'); ?>', 
+                selected_items: selectedItems 
             },
             success: function(response) {
                 // Remove all existing notifications
@@ -655,7 +650,6 @@ function display_facebook_cache_admin() {
 
 <?php
 }
-
 
 // Register the AJAX action for updating selections
 function handle_facebook_cache_selection_update() {
@@ -753,21 +747,3 @@ function fetch_and_update_facebook_cache_cron_handler() {
 add_action('usqp_facebook_feed_cache_update_cron', 'fetch_and_update_facebook_cache_cron_handler');
 
 /*****************************************************************************************************************************************************/
-// 8. delete_facebook_cache()
-// This function deletes the cached Facebook feed data and associated media files.
-// / Cette fonction supprime les données du flux Facebook mises en cache et les fichiers multimédias associés.
-
-// Check if the user triggered a cache deletion
-if (isset($_POST['delete_facebook_cache'])) {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'usqp_facebook_feed';
-    $cache_dir = wp_upload_dir()['basedir'] . '/usqp/facebook-feed/';
-
-    // Delete all cache files
-    array_map('unlink', glob($cache_dir . "*"));
-
-    // Set last_cache_update to NULL in the database
-    $wpdb->query("UPDATE $table_name SET last_cache_update = NULL");
-
-    echo '<div class="updated"><p>Cache has been successfully deleted from files and database.</p></div>';
-}
