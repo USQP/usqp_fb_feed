@@ -1,6 +1,6 @@
 /*********************************************************************************************
- * Summary for the frontend_integration.css file
- * Sommaire pour le fichier frontend_integration.css
+ * Summary for the elementor_integration.css file
+ * Sommaire pour le fichier elementor_integration.css
  *********************************************************************************************
  *
  * 1. Global selector - Styles applied to the entire Facebook feed container.
@@ -21,139 +21,133 @@
  *********************************************************************************************/
 
 /* Global selector */
-.default_frontend_integration.facebook-feed {
+.elementor_integration.elementor_integration.facebook-feed {
     padding: 20px;
-    font-family: Jost;
+    font-family: "Roboto";
 }
 
 /* Slider_skin selector */
-.default_frontend_integration.facebook-feed.slider {
+.elementor_integration.elementor_integration.facebook-feed.slider {
     background-color: white;
     border: 2px solid black;
-    border-radius: 10px;
-    box-shadow: 5px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 0px;
     display: flex;
     justify-content: space-evenly;
 }
 
-.default_frontend_integration.facebook-feed.slider .slick-arrow {
+.elementor_integration.facebook-feed.slider .slick-arrow {
     z-index: 1;
     padding: 20px 20px;
     color: #000;
     border: 2px solid #000;
-    background: #F1ECE5;
-    box-shadow: 5px 5px rgba(0, 0, 0, 0.2);
+    background: white;
     border-radius: 50px;
-    transition: all 0.5s cubic-bezier(0.3, 0, 0.3, 1);
 }
 
-.default_frontend_integration.facebook-feed.slider .slick-arrow:hover{
-    background-color: #33A487;
+.elementor_integration.facebook-feed.slider .slick-arrow:hover{
+    background-color: grey;
     color: white;
     border-color: black;
 }
 
-.default_frontend_integration.facebook-feed.slider .slick-arrow::before {
+.elementor_integration.facebook-feed.slider .slick-arrow::before {
     color: #000;
     margin: -50px;
     line-height: 2px;
-    transition: all 0.5s cubic-bezier(0.3, 0, 0.3, 1);
 }
 
-.default_frontend_integration.facebook-feed.slider .slick-arrow:hover::before {
+.elementor_integration.facebook-feed.slider .slick-arrow:hover::before {
     color: white;
 }
 
-.default_frontend_integration.facebook-feed.slider .slick-next::before {
+.elementor_integration.facebook-feed.slider .slick-next::before {
     font-family: FontAwesome;
     content: "\f054";
     margin: -5px;
 }
 
-.default_frontend_integration.facebook-feed.slider .slick-prev::before {
+.elementor_integration.facebook-feed.slider .slick-prev::before {
     font-family: FontAwesome;
     content: "\f053";
     margin: -10px;
 }
 
-.default_frontend_integration.facebook-feed.slider  .slick-dots {
+.elementor_integration.facebook-feed.slider  .slick-dots {
    bottom: -50px;
 }
 
-.default_frontend_integration.facebook-feed.slider .slick-dots li button::before {
+.elementor_integration.facebook-feed.slider .slick-dots li button::before {
     font-family: FontAwesome;
     content: "\f111";
     font-size: 15px;
 }
 
 /* List_skin selector */
-.default_frontend_integration.facebook-feed.list {
+.elementor_integration.facebook-feed.list {
     display: block;
 }
 
-.default_frontend_integration.facebook-feed.list .feed-item {
+.elementor_integration.facebook-feed.list .feed-item {
     padding: 20px;
     background-color: white;
     border: 2px solid black;
-    border-radius: 10px;
-    box-shadow: 5px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 0px;
     margin: 20px;
 } 
 
 
-/* fb_media sleector */
-.default_frontend_integration.facebook-feed .fb_media {
+/* fb_media selector */
+.elementor_integration.facebook-feed .fb_media {
     height: 400px;
     display: flex;
     justify-content: center;
     padding: 10px;
 }
 
-.default_frontend_integration.facebook-feed .fb_media video {
+.elementor_integration.facebook-feed .fb_media video {
     height: 100%;
-    width: auto;
+    border-radius: 0px;
     border: 2px solid black;
-    border-radius: 10px;
-    box-shadow: 5px 5px rgba(0, 0, 0, 0.2);
 }
 
-.default_frontend_integration.facebook-feed .fb_media img {
+.elementor_integration.facebook-feed .fb_media img {
     height: 100%;
     object-fit: contain;
 }
 
 /* fb_global_info selector */
-.default_frontend_integration.facebook-feed .fb_global_info {
+.elementor_integration.facebook-feed .fb_global_info {
     display: flex;
     justify-content: flex-start;
     padding: 10px;
 }
 
-.default_frontend_integration.facebook-feed .fb_global_info .page-logo{
-    
+.elementor_integration.facebook-feed .fb_global_info .page-logo{
+    display: flex;
+    align-items: center;;
 }
 
-.default_frontend_integration.facebook-feed .fb_global_info .page-logo img{
-    border-radius: 40px;
+.elementor_integration.facebook-feed .fb_global_info .page-logo img{
+    border-radius: 0px;
 }
 
-.default_frontend_integration.facebook-feed .fb_global_info .post-info{
+.elementor_integration.facebook-feed .fb_global_info .post-info{
     padding-left: 10px;
         
 }
 
-.default_frontend_integration.facebook-feed .fb_global_info .post-info h3{
+.elementor_integration.facebook-feed .fb_global_info .post-info h3{
     margin: 0px;
     font-size: 20px;
 }
 
-.default_frontend_integration.facebook-feed .fb_global_info .post-info p{
+.elementor_integration.facebook-feed .fb_global_info .post-info p{
     margin: 0px;
-    font-size: 14px; 
+    font-size: 15px; 
 }
 
 /* fb_content selector */
-.default_frontend_integration.facebook-feed .fb_content {
+.elementor_integration.facebook-feed .fb_content {
     padding:0 40px;
     height: 150px;
     overflow-y: auto;
@@ -161,66 +155,43 @@
     flex-direction: row;
     align-items: center;
     text-align: justify;
-
-        /* Hide default scrollbar, but but allows scrolling */
-        scrollbar-width: thin; /* For Firefox */
-        scrollbar-color: rgba(0, 0, 0, 0.3) transparent; /* ForFirefox */
 }
 
-    /* For Chrome, Edge et Safari */
-    .default_frontend_integration.facebook-feed .fb_content::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .default_frontend_integration.facebook-feed .fb_content::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.3); 
-        border-radius: 10px;
-    }
-
-    .default_frontend_integration.facebook-feed .fb_content::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-.default_frontend_integration.facebook-feed .fb_content .short-text {
+.elementor_integration.facebook-feed .fb_content .short-text {
 }
 
-.default_frontend_integration.facebook-feed .fb_content .full-text {
+.elementor_integration.facebook-feed .fb_content .full-text {
     
 }
 
-.default_frontend_integration.facebook-feed .fb_content .read-more {
+.elementor_integration.facebook-feed .fb_content .read-more {
 }
 
-.default_frontend_integration.facebook-feed .fb_content .read-less{
+.elementor_integration.facebook-feed .fb_content .read-less{
 }
 
 /* fb_link selector */
-.default_frontend_integration.facebook-feed .fb_view-link {
+.elementor_integration.facebook-feed .fb_view-link {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
     padding: 10px 40px;
 }
 
-.default_frontend_integration.facebook-feed .fb_view-link a {
+.elementor_integration.facebook-feed .fb_view-link a {
     align-self: center;
     width: fit-content;
     padding: 5px 40px;
-    font-size: 14px;
+    font-size: 15px;
     color: #000 ;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     text-align: center;
     border: 2px solid #000 ;
-    background: #F1ECE5;
-    box-shadow: 5px 5px rgba(0, 0, 0, 0.2);
+    background: white;
     border-radius: 50px;
-    transition: all 0.7s cubic-bezier(0.3, 0, 0.3, 1);
 }
 
-.default_frontend_integration.facebook-feed .fb_view-link a:hover {
-    background-color: #33A487;
+.elementor_integration.facebook-feed .fb_view-link a:hover {
+    background-color: grey;
     color: white;
     border-color: black;
 }

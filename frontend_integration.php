@@ -94,6 +94,10 @@ function display_feed_frontend($atts) {
             'type' => 'all', 
             // Defines the type of content to display. Filters for reels, posts, or both.
             // Possible values: 'all' (both reels and posts), 'reels' (only reels), 'posts' (only posts).
+
+            'integration' => 'default_frontend_integration' 
+            // Defines the integration type used.
+            // Possible values: 'default_frontend_integration' (default), 'elementor_integration' : embeds the widget inside a div with the same class name
         ], 
         $atts,
         'usqp_fb_feed'
@@ -104,6 +108,7 @@ function display_feed_frontend($atts) {
     $word_limit = intval($atts['word_limit']);
     $display = strtolower($atts['display']); 
     $type_filter = strtolower($atts['type']); 
+    $integration = strtolower($atts['integration']); 
 
     $table_name = $wpdb->prefix . 'usqp_facebook_feed';
     $row = $wpdb->get_row("SELECT * FROM $table_name ORDER BY id DESC LIMIT 1");
@@ -222,7 +227,7 @@ function display_feed_frontend($atts) {
     }
 
     // Start HTML output
-    $output = "<div class='facebook-feed {$display}'>"; // Class based on the display mode
+    $output .= "<div class='{$integration} facebook-feed {$display} '>"; // Class based on the display and integration mode
 
     foreach ($feed as $item) {
         $output .= "<div class='feed-item {$item['type']}' id='{$item['id']}'>";
