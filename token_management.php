@@ -10,7 +10,7 @@
  *                                      / Fonction pour enregistrer le jeton d'accès et la page associée dans la base de données.
  * 3. renew_token_action() - Function to manually renew the access token.
  *                                      / Fonction pour renouveler manuellement le jeton d'accès.
- * 4. auto_renew_token_cron_handler() - Function to automatically renew the token at the expiration date.
+ * 4. auto_renew_token_cron_handler() // reprogram_cron_event() - Function to automatically renew the token at the expiration date.
  *                                      / Fonction pour renouveler automatiquement le jeton avant la date d'expiration.
  * 5. disconnect_facebook_action() - Function to delete Facebook information and log out the user.
  *                                      / Fonction pour supprimer les informations Facebook et déconnecter l'utilisateur.
@@ -23,127 +23,21 @@
 
 
 /*****************************************************************************************************************************************************/
-// 1. Function to add the Facebook SDK to the page
-// This function inserts the necessary scripts to integrate the Facebook SDK and initializes the methods 
-// for login and token management. It also includes buttons to connect, renew, and disconnect a user from Facebook.
-/** 
- * Fonction pour ajouter le SDK Facebook sur la page
- * Cette fonction insère les scripts nécessaires pour intégrer le SDK Facebook et initialise les méthodes 
- * de connexion et de gestion de jeton. Elle inclut également des boutons pour connecter, renouveler 
- * et déconnecter un utilisateur de Facebook.
- */
+// 1. add_facebook_sdk()
+//  Function to add the Facebook SDK to the page and handle the login. 
+// / Fonction pour ajouter le SDK Facebook sur la page et gérer la connexion.
 function add_facebook_sdk() {
     if (!wp_script_is('facebook-jssdk', 'enqueued')) {
         ?>
         <script async defer src="https://connect.facebook.net/en_US/sdk.js"></script>
-        <script>
-          window.fbAsyncInit = function() {
-            FB.init({
-              appId      : "<?php echo getenv('FB_APP_ID'); ?>", // Inject App ID from PHP
-              cookie     : true,
-              xfbml      : true,
-              version    : 'v22.0'
-            });
-            FB.AppEvents.logPageView();   
-          };
-
-          function connect_facebook() {
-            document.getElementById('facebook-info').innerHTML = '';
-            FB.login(function(response) {
-              if (response.authResponse) {
-                retrieve_page_id(response.authResponse.accessToken);
-              }
-            }, {scope: 'public_profile,email,pages_show_list,pages_read_engagement,pages_read_user_content'}); 
-          }
-
-          function retrieve_page_id(accessToken) {
-            FB.api('/me/accounts', { access_token: accessToken }, function(response) {
-              if (response && !response.error && response.data.length > 0) {
-                var pageInfo = response.data[0];
-                save_token(pageInfo.access_token, pageInfo.id);
-              }
-            });
-          }
-
-          function save_token(accessToken, pageId) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '<?php echo admin_url('admin-ajax.php'); ?>');
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.success) {
-                        document.getElementById('facebook-info').innerHTML = response.data.updated_html;
-                    }
-                }
-            };
-            xhr.send('action=save_token&access_token=' + accessToken + '&page_id=' + pageId);
-        }
-
-        window.onload = function() {
-            load_facebook_info();
-        }
-
-        function load_facebook_info() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '<?php echo admin_url('admin-ajax.php'); ?>', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.success) {
-                        document.getElementById('facebook-info').innerHTML = response.data.updated_html;
-                    }
-                }
-            };
-            xhr.send('action=load_facebook_info');
-        }
-
-        function renew_token() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '<?php echo admin_url('admin-ajax.php'); ?>', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.success) {
-                        document.getElementById('facebook-info').innerHTML = response.data.updated_html;
-                    }
-                }
-            };
-            xhr.send('action=renew_token');
-        }
-
-        function disconnect_facebook() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '<?php echo admin_url('admin-ajax.php'); ?>', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.success) {
-                        document.getElementById('facebook-info').innerHTML = response.data.updated_html;
-                    }
-                }
-            };
-            xhr.send('action=disconnect_facebook');
-        }
-        </script>
         <?php
     }
 }
 
 /*****************************************************************************************************************************************************/
-// 2. Function to save the access token and the associated page in the database
-// This function retrieves the user's access_token and page_id from Facebook, 
-// checks if the token is valid, and saves it in the database.
-// If necessary, it converts the token into a long-term token and updates the database.
-/**
- * Fonction pour enregistrer le jeton d'accès et la page associée dans la base de données
- * Cette fonction récupère l'access_token de l'utilisateur et le page_id depuis Facebook, 
- * vérifie si le jeton est valide et l'enregistre dans la base de données.
- * Si nécessaire, elle convertit le jeton en un jeton à long terme et met à jour la base de données.
- */
+// 2. save_token()
+// Function to save the access token and the associated page in the database.
+// / Fonction pour enregistrer le jeton d'accès et la page associée dans la base de données.
 function save_token() {
     if (isset($_POST['access_token']) && isset($_POST['page_id'])) {
         global $wpdb;
@@ -261,14 +155,9 @@ function save_token() {
 add_action('wp_ajax_save_token', 'save_token');
 
 /*****************************************************************************************************************************************************/
-// 3. Function to manually renew the access token
-// This function allows you to manually renew an access token by using Facebook's short-term to long-term 
-// token conversion method.
-/**
- * Fonction pour renouveler manuellement le jeton d'accès
- * Cette fonction permet de renouveler un jeton d'accès manuellement en utilisant la méthode de conversion 
- * d'un jeton court terme en un jeton long terme de Facebook.
- */
+// 3. renew_token_action()
+// Function to manually renew the access token.
+// / Fonction pour renouveler manuellement le jeton d'accès.
 function renew_token_action() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'usqp_facebook_feed';
@@ -336,14 +225,9 @@ function renew_token_action() {
 add_action('wp_ajax_renew_token', 'renew_token_action');
 
 /*****************************************************************************************************************************************************/
-// 4. Function to automatically renew the token at the expiration date
-// This function is executed via a cron task to automatically renew it
-// if needed. It then updates the database with the new information.
-/**
- * Fonction pour renouveler automatiquement le jeton avant la date d'expiration
- * Cette fonction est exécutée via une tâche cron afin de renouveler 
- * automatiquement en cas de besoin. Elle met ensuite à jour la base de données avec les nouvelles informations.
- */
+// 4. auto_renew_token_cron_handler() // reprogram_cron_event() 
+// Function to automatically renew the token at the expiration date
+// / Fonction pour renouveler automatiquement le token à la date d'expiration
 function auto_renew_token_cron_handler() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'usqp_facebook_feed';
@@ -365,7 +249,6 @@ function auto_renew_token_cron_handler() {
                 $new_expiration_time = time() + (60 * 60 * 24 * 60); // 60 days
                 $next_renewal_time = time() + (60 * 60 * 24 * 30); // 30 days before expiration
 
-                // Update the token in the database
                 $wpdb->update(
                     $table_name,
                     array(
@@ -378,25 +261,40 @@ function auto_renew_token_cron_handler() {
                     array('%s')
                 );
 
-                // Reschedule the cron for the next renewal with the new expiration time
-                if (!wp_next_scheduled('usqp_facebook_feed_token_update_cron')) {
-                    wp_schedule_single_event($next_renewal_timestamp, 'usqp_facebook_feed_token_update_cron');
-                }
+                // Plan the cron event for the next renewal
+                $next_renewal_timestamp = $next_renewal_time; // Use the timestamp directly
+
+                // Send an HTTP request to trigger a reprogramming of the cron event after this task is finished
+                wp_remote_get(add_query_arg('auto_renew_token_action', 'reprogram_cron', home_url()));
             }
         }
     }
 }
+
+// Function to reprogram the cron event outside of the current execution.
+// This will be triggered by the HTTP request made in the auto_renew_token_cron_handler function.
+function reprogram_cron_event() {
+    // Check if the action is set in the URL to trigger the reprogramming
+    if (isset($_GET['auto_renew_token_action']) && $_GET['auto_renew_token_action'] === 'reprogram_cron') {
+        // Recalculate the next renewal timestamp (30 days later)
+        $next_renewal_timestamp = time() + (60 * 60 * 24 * 30); // 30 days from now
+        
+        // Schedule the cron event for the next renewal
+        if (!wp_next_scheduled('usqp_facebook_feed_token_update_cron')) {
+            wp_schedule_single_event($next_renewal_timestamp, 'usqp_facebook_feed_token_update_cron');
+        }
+    }
+}
+// Hook to trigger the cron reprogramming outside of the current execution
+add_action('init', 'reprogram_cron_event');
+
+// Hook the main cron handler to execute the renewal process
 add_action('usqp_facebook_feed_token_update_cron', 'auto_renew_token_cron_handler');
 
 /*****************************************************************************************************************************************************/
-// 5. Function to disconnect the user and delete Facebook-related information
-// This function deletes the stored information from the database, 
-// disables the associated cron tasks, and updates the user interface to indicate the disconnection.
-/**
- * Fonction pour déconnecter l'utilisateur et supprimer les informations liées à Facebook
- * Cette fonction supprime les informations enregistrées dans la base de données, 
- * désactive les tâches cron associées et met à jour l'interface utilisateur pour indiquer que la déconnexion a été effectuée.
- */
+// 5. disconnect_facebook_action()
+// Function to delete Facebook information and log out the user.
+// / Fonction pour supprimer les informations Facebook et déconnecter l'utilisateur.
 function disconnect_facebook_action() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'usqp_facebook_feed';
@@ -447,14 +345,9 @@ function disconnect_facebook_action() {
 add_action('wp_ajax_disconnect_facebook', 'disconnect_facebook_action');
 
 /********************************************************************************************************************************************************** */
-// 6. Function to display the token management page in the WordPress admin interface
-// This function generates a user interface with buttons to connect Facebook, display the 
-// current token information, manually renew the token, or log out.
-/**
- * Fonction pour afficher la page de gestion du jeton dans l'interface d'administration de WordPress
- * Cette fonction génère une interface utilisateur avec des boutons pour connecter Facebook, afficher les 
- * informations du jeton actuel, renouveler manuellement le jeton ou se déconnecter.
- */
+// 6. usqp_fb_feed_token_page()
+// Function to display the token management page in the WordPress admin.
+// / Fonction pour afficher la page de gestion du jeton dans l'admin WordPress.
 function usqp_fb_feed_token_page() {
     ?>
     <div class="wrap">
@@ -466,132 +359,22 @@ function usqp_fb_feed_token_page() {
             <?php display_facebook_info(); // Display Facebook info directly with PHP ?>
         </div>
     </div>
-    
-    <script>
-        // Load the Facebook SDK and initialize functions
-        function load_facebook_sdk() {
-            if (typeof FB === 'undefined') {
-                var script = document.createElement('script');
-                script.src = "https://connect.facebook.net/en_US/sdk.js";
-                script.async = true;
-                script.onload = function() {
-                    FB.init({
-                        appId      : "<?php echo getenv('FB_APP_ID'); ?>", // Inject App ID from PHP
-                        cookie     : true,
-                        xfbml      : true,
-                        version    : 'v22.0'
-                    });
-                    FB.AppEvents.logPageView();
-                    console.log('Facebook SDK loaded');
-                };
-                document.head.appendChild(script);
-            } else {
-                console.log('Facebook SDK already loaded');
-            }
-        }
 
-        load_facebook_sdk();
-
-        // Function to connect to Facebook
-        function connect_to_facebook() {
-            document.getElementById('facebook-info').innerHTML = '';
-            FB.login(function(response) {
-                if (response.authResponse) {
-                    get_page_id(response.authResponse.accessToken);
-                }
-            }, {scope: 'public_profile,email,pages_show_list,pages_read_engagement,pages_read_user_content'}); 
-        }
-
-        // Get the page_id after login
-        function get_page_id(accessToken) {
-            FB.api('/me/accounts', { access_token: accessToken }, function(response) {
-                if (response && !response.error && response.data.length > 0) {
-                    var pageInfo = response.data[0];
-                    save_token(pageInfo.access_token, pageInfo.id);
-                }
-            });
-        }
-
-        // Save the access token in the database
-        function save_token(accessToken, pageId) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '<?php echo admin_url('admin-ajax.php'); ?>', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.success) {
-                        document.getElementById('facebook-info').innerHTML = response.data.updated_html;
-                    }
-                }
-            };
-            xhr.send('action=save_token&access_token=' + accessToken + '&page_id=' + pageId);
-        }
-
-        // Function to renew the access token
-        function renew_token() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '<?php echo admin_url('admin-ajax.php'); ?>', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.success) {
-                        document.getElementById('facebook-info').innerHTML = response.data.updated_html;
-                    }
-                }
-            };
-            xhr.send('action=renew_token');
-        }
-
-        // Function to disconnect from Facebook
-        function disconnect_facebook() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '<?php echo admin_url('admin-ajax.php'); ?>', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.success) {
-                        document.getElementById('facebook-info').innerHTML = response.data.updated_html;
-                    }
-                }
-            };
-            xhr.send('action=disconnect_facebook');
-        }
-
-        // Load Facebook information when the page loads
-        window.onload = function() {
-            load_facebook_information();
-        };
-
-        // Load Facebook information from the database
-        function load_facebook_information() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '<?php echo admin_url('admin-ajax.php'); ?>', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.success) {
-                        document.getElementById('facebook-info').innerHTML = response.data.updated_html;
-                    }
-                }
-            };
-            xhr.send('action=load_facebook_information');
-        }
-    </script>
     <?php
+    
+    // Enqueue the external JS file from the plugin folder
+    wp_enqueue_script('token-management', plugin_dir_url(__FILE__) . 'js/token_management.js', array(), null, true);
+
+    // Pass PHP data to JS
+    wp_localize_script('token-management', 'facebookData', array(
+        'app_id'    => getenv('FB_APP_ID'), // Facebook App ID from environment variable
+        'ajax_url'  => admin_url('admin-ajax.php') // WordPress AJAX URL
+    ));
 }
 
-// 7. Function to display the Facebook token-related information
-// This function retrieves the token information (access, page ID, expiration, etc.) 
-// and displays it to the user in the admin interface.
-/**
- * Fonction pour afficher les informations liées au jeton Facebook
- * Cette fonction récupère les informations du jeton (accès, ID de la page, expiration, etc.) 
- * et les affiche à l'utilisateur dans l'interface d'administration.
- */
+// 7. display_facebook_info()
+// Function to display the access token and the associated page information.
+// / Fonction pour afficher les informations du jeton d'accès et la page associée.
 function display_facebook_info() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'usqp_facebook_feed';
