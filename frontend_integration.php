@@ -14,6 +14,8 @@
  *                                     / Fonction pour inclure le fichier CSS spécifique au flux Facebook dans le frontend.
  * 5. render_facebook_feed() - Displays the Facebook feed by loading cached data (posts, reels, page info).
  *                                      / Affiche le flux Facebook en chargeant les données mises en cache (publications, reels, infos page).
+ * 6. enqueue_frontend_integration_js() - Enqueues the custom JavaScript for frontend integration, handling the "Read more" / "Read less" functionality and the Slick slider.
+ *                                     / Charge le JavaScript personnalisé pour l'intégration frontend, gérant la fonctionnalité "Lire plus" / "Lire moins" et le slider Slick.
  * 
  *********************************************************************************************/
 
@@ -263,54 +265,21 @@ function display_feed_frontend($atts) {
     }
 
     $output .= "</div>";
-
-    // Script to handle the display of full or truncated text in posts
-    $output .= "
-    <script>
-        jQuery(document).ready(function() {
-            jQuery('.facebook-feed').on('click', '.read-more', function(e) {
-                e.preventDefault();
-                var parent = jQuery(this).closest('.fb_content');
-                parent.find('.short-text').hide();
-                parent.find('.full-text').show();
-                jQuery(this).hide();
-                parent.find('.read-less').show();
-            });
-
-            jQuery('.facebook-feed').on('click', '.read-less', function(e) {
-                e.preventDefault();
-                var parent = jQuery(this).closest('.fb_content');
-                parent.find('.full-text').hide();
-                parent.find('.short-text').show();
-                jQuery(this).hide();
-                parent.find('.read-more').show();
-            });
-        });
-    </script>";
-
-    // Script to enable the slider when the "slider" mode is enabled
-    $output .= "
-    <script>
-        jQuery(document).ready(function() {
-            if ('{$display}' === 'slider' && jQuery('.facebook-feed.slider').length > 0) {
-                jQuery('.facebook-feed.slider').slick({
-                    infinite: true,
-                    slidesToShow: 1,
-                    slidesToScroll: 1,
-                    autoplay: true,
-                    autoplaySpeed: 3000,
-                    dots: true,
-                    arrows: true,
-                    fade: false,
-                    speed: 500,
-                    pauseOnHover: true,
-                    pauseOnFocus: true,
-                    prevArrow: '<button type=\"button\" class=\"slick-prev\"></button>',
-                    nextArrow: '<button type=\"button\" class=\"slick-next\"></button>' 
-                });
-            }
-        });
-    </script>
-    ";
     return $output;
 }
+
+// 6. enqueue_frontend_integration_js()
+// Enqueues the custom JavaScript for frontend integration, handling the "Read more" / "Read less" functionality and the Slick slider.
+// / Charge le JavaScript personnalisé pour l'intégration frontend, gérant la fonctionnalité "Lire plus" / "Lire moins" et le slider Slick.
+function enqueue_frontend_integration_js() {
+    // Enqueue the custom JS for frontend
+    wp_enqueue_script(
+        'frontend-integration-js', 
+        plugin_dir_url(__FILE__) . 'js/frontend_integration.js', 
+        array('jquery', 'slick-js'),
+        null, 
+        true  
+    );
+}
+add_action('wp_enqueue_scripts', 'enqueue_frontend_integration_js');
+
