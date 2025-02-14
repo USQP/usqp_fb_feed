@@ -68,5 +68,6 @@ function usqp_fb_feed_main_page() {
     echo '<div class="wrap">';
     echo '<h1>USQP Facebook Feed</h1>';
     echo '<p>Welcome to the main settings page of USQP Facebook Feed.</p>';
+    echo '<p>For more information, visit the <a href="https://github.com/USQP/usqp_fb_feed" target="_blank">GitHub repository</a>.</p>';
     echo '</div>';
 }

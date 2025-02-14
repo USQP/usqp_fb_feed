@@ -276,9 +276,13 @@ function enqueue_cache_update_check_script() {
                             if (jQuery('#cache-update-notice').length === 0) {
                                 jQuery('.wrap').prepend('<div class="notice notice-warning is-dismissible" id="cache-update-notice"><p><strong>Cache update is in progress.</strong> Please wait...</p></div>');
                             }
+                            jQuery('input[name="update_facebook_cache"]').prop('disabled', true);
+                            jQuery('input[name="delete_facebook_cache"]').prop('disabled', true);
                         } else {
                             // Remove the notice once the update is complete
                             jQuery('#cache-update-notice').remove();
+                            jQuery('input[name="update_facebook_cache"]').prop('disabled', false);
+                            jQuery('input[name="delete_facebook_cache"]').prop('disabled', false);
                         }
                     }
                 });
@@ -320,9 +324,10 @@ function inject_cache_status_to_frontend() {
     $cache_in_progress = get_transient('facebook_cache_update_in_progress') ? 'in_progress' : 'completed';
     ?>
     <script type="text/javascript">
-        // Pass the cache status to JavaScript
-        var cacheStatus = "<?php echo esc_js($cache_in_progress); ?>";
-    </script>
+    // Passer le statut du cache à JavaScript
+    var cacheStatus = "<?php echo esc_js($cache_in_progress); ?>";
+</script>
+
     <?php
 }
 // Hook the function to the 'admin_footer' action to inject the cache status into the page
