@@ -313,7 +313,7 @@ function renew_token_action() {
                 // Schedule the cron job for automatic token renewal
                 $next_renewal_timestamp = strtotime($next_renewal_time);
                 if (!wp_next_scheduled('usqp_facebook_feed_token_update_cron')) {
-                    wp_schedule_single_event($next_renewal_time, 'usqp_facebook_feed_token_update_cron');
+                    wp_schedule_single_event($next_renewal_timestamp, 'usqp_facebook_feed_token_update_cron');
                 }
 
                 // Display updated Facebook information
@@ -380,7 +380,7 @@ function auto_renew_token_cron_handler() {
 
                 // Reschedule the cron for the next renewal with the new expiration time
                 if (!wp_next_scheduled('usqp_facebook_feed_token_update_cron')) {
-                    wp_schedule_single_event($next_renewal_time, 'usqp_facebook_feed_token_update_cron');
+                    wp_schedule_single_event($next_renewal_timestamp, 'usqp_facebook_feed_token_update_cron');
                 }
             }
         }
