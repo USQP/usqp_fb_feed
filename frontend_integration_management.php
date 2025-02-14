@@ -12,7 +12,10 @@
  *                                      / Gère la logique de modification et de réinitialisation du CSS.
  * 4. enqueue_code_mirror() - Enqueues the necessary scripts and styles for CodeMirror editor.
  *                                      / Enfile les scripts et styles nécessaires pour l'éditeur CodeMirror.
- *********************************************************************************************/
+ *  5. enqueue_frontend_integration_management_js () - Enqueues the custom JavaScript for frontend integration management, handles the Ajax request, and initializes CodeMirror
+*                                       / Enfile le JavaScript personnalisé pour la gestion de l'intégration frontend, gère la requête Ajax et initialise CodeMirror
+*
+*********************************************************************************************/
 
 // 1 . usqp_fb_feed_integration_page()
 // Displays the frontend integration page with CSS modification options and shortcode generator.
@@ -216,65 +219,6 @@ function display_css_modification_form($css_content) {
             <input type="button" id="reset_css" value="Reset" class="button button-secondary">
         </form>
     </div>
-
-    <script>
-        jQuery(document).ready(function($) {
-            // Initialize CodeMirror only for the textarea with id "css_content"
-            var editor = CodeMirror.fromTextArea(document.getElementById("css_content"), {
-                mode: "css",
-                theme: "dracula",
-                lineNumbers: true,
-                tabSize: 2
-            });
-
-            // Submit the CSS modification form via Ajax
-            $('#css-modification-form').submit(function(e) {
-                e.preventDefault();
-
-                var cssContent = editor.getValue(); // Use the value from CodeMirror
-
-                // Ajax call to modify the CSS
-                $.ajax({
-                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
-                    method: 'POST',
-                    data: {
-                        action: 'handle_css_modification',
-                        css_content: cssContent
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            $('.notice').remove(); // Remove existing notices
-                            $('.wrap').prepend('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
-                            editor.setValue(response.data.css_content); // Update editor content
-                            $('html, body').animate({ scrollTop: 0 }, 'slow'); // Scroll to the top of the page
-                        }
-                    }
-                });
-            });
-
-            // Reset CSS via Ajax
-            $('#reset_css').click(function(e) {
-                e.preventDefault();
-
-                $.ajax({
-                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
-                    method: 'POST',
-                    data: {
-                        action: 'handle_css_modification',
-                        reset_css: true
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            $('.notice').remove(); // Remove existing notices
-                            $('.wrap').prepend('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
-                            editor.setValue(response.data.css_content); // Update editor content
-                            $('html, body').animate({ scrollTop: 0 }, 'slow'); // Scroll to the top of the page
-                        }
-                    }
-                });
-            });
-        });
-    </script>
     <?php
 }
 
@@ -290,5 +234,21 @@ function enqueue_code_mirror() {
 
 // Enqueue CodeMirror scripts and styles
 add_action('admin_enqueue_scripts', 'enqueue_code_mirror');
-?>
+
+// 5. enqueue_frontend_integration_management_js ()
+// Enqueues the custom JavaScript for frontend integration management, handles the Ajax request, and initializes CodeMirror
+// / Enfile le JavaScript personnalisé pour la gestion de l'intégration frontend, gère la requête Ajax et initialise CodeMirror
+function enqueue_frontend_integration_management_js() {
+    wp_enqueue_script(
+        'frontend-integration-management', 
+        plugin_dir_url(__FILE__) . 'js/frontend_integration_management.js', 
+        array('jquery', 'codemirror'), 
+        null, 
+        true 
+    );
+}
+add_action('admin_enqueue_scripts', 'enqueue_frontend_integration_management_js');
+
+
+
 
