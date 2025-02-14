@@ -21,8 +21,6 @@
  *
  *********************************************************************************************/
 
-
-/*****************************************************************************************************************************************************/
 // 1. add_facebook_sdk()
 //  Function to add the Facebook SDK to the page and handle the login. 
 // / Fonction pour ajouter le SDK Facebook sur la page et gérer la connexion.
@@ -34,7 +32,7 @@ function add_facebook_sdk() {
     }
 }
 
-/*****************************************************************************************************************************************************/
+
 // 2. save_token()
 // Function to save the access token and the associated page in the database.
 // / Fonction pour enregistrer le jeton d'accès et la page associée dans la base de données.
@@ -154,7 +152,7 @@ function save_token() {
 }
 add_action('wp_ajax_save_token', 'save_token');
 
-/*****************************************************************************************************************************************************/
+
 // 3. renew_token_action()
 // Function to manually renew the access token.
 // / Fonction pour renouveler manuellement le jeton d'accès.
@@ -224,7 +222,7 @@ function renew_token_action() {
 }
 add_action('wp_ajax_renew_token', 'renew_token_action');
 
-/*****************************************************************************************************************************************************/
+
 // 4. auto_renew_token_cron_handler() // reprogram_cron_event() 
 // Function to automatically renew the token at the expiration date
 // / Fonction pour renouveler automatiquement le token à la date d'expiration
@@ -291,7 +289,7 @@ add_action('init', 'reprogram_cron_event');
 // Hook the main cron handler to execute the renewal process
 add_action('usqp_facebook_feed_token_update_cron', 'auto_renew_token_cron_handler');
 
-/*****************************************************************************************************************************************************/
+
 // 5. disconnect_facebook_action()
 // Function to delete Facebook information and log out the user.
 // / Fonction pour supprimer les informations Facebook et déconnecter l'utilisateur.
@@ -344,7 +342,7 @@ function disconnect_facebook_action() {
 // Register the action for the AJAX process
 add_action('wp_ajax_disconnect_facebook', 'disconnect_facebook_action');
 
-/********************************************************************************************************************************************************** */
+
 // 6. usqp_fb_feed_token_page()
 // Function to display the token management page in the WordPress admin.
 // / Fonction pour afficher la page de gestion du jeton dans l'admin WordPress.

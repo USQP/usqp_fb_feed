@@ -18,9 +18,11 @@
  *                                      / Fonction pour ajouter des intervalles cron personnalisés pour des tâches comme la mise à jour du cache toutes les minutes.
  * 7. fetch_and_update_facebook_cache_cron_handler() - Function to handle the cron job for updating the cache automatically.
  *                                      / Fonction pour gérer la tâche cron de mise à jour automatique du cache.
+ * 8. enqueue_cache_management_js() - Loads the cache management JS in the WordPress admin panel
+ *                                      /Charge le JS de gestion du cache dans l'admin WordPress
+ *
  *********************************************************************************************/
 
-/*****************************************************************************************************************************************************/
 // 1. fetch_and_update_facebook_cache()
 // This function fetches the Facebook feed data (videos, posts, page information) using the Facebook API. 
 // It downloads and saves the videos, images, and other related media to a cache directory. It also updates the cache status in the database.
@@ -235,8 +237,7 @@ file_put_contents($selected_content_file, json_encode($final_ids, JSON_PRETTY_PR
     return "Information and media have been successfully updated.";
 }
 
-/*****************************************************************************************************************************************************/
-/*****************************************************************************************************************************************************/
+
 // 2. enqueue_cache_update_check_script() // check_facebook_cache_update()
 // This function enqueues a script to check the status of the Facebook cache update and display a notification if the cache is being updated.
 // / Ces fonctions enfilent un script pour vérifier l'état de la mise à jour du cache Facebook et afficher une notification si le cache est en cours de mise à jour.
@@ -260,44 +261,22 @@ function enqueue_cache_update_check_script() {
         strpos($current_screen->id, 'usqp_fb_feed_cache_management') !== false ||
         strpos($current_screen->id, 'usqp_fb_feed_cache_page') !== false
     )) {
-        ?>
-        <script type="text/javascript">
-            function check_cache_update_status() {
-                jQuery.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'check_facebook_cache_update', // AJAX action
-                        _wpnonce: '<?php echo wp_create_nonce("check_facebook_cache_nonce"); ?>'
-                    },
-                    success: function(response) {
-                        if (response.trim() === 'in_progress') {
-                            // If the cache update is in progress, display a warning notice
-                            if (jQuery('#cache-update-notice').length === 0) {
-                                jQuery('.wrap').prepend('<div class="notice notice-warning is-dismissible" id="cache-update-notice"><p><strong>Cache update is in progress.</strong> Please wait...</p></div>');
-                            }
-                            jQuery('input[name="update_facebook_cache"]').prop('disabled', true);
-                            jQuery('input[name="delete_facebook_cache"]').prop('disabled', true);
-                        } else {
-                            // Remove the notice once the update is complete
-                            jQuery('#cache-update-notice').remove();
-                            jQuery('input[name="update_facebook_cache"]').prop('disabled', false);
-                            jQuery('input[name="delete_facebook_cache"]').prop('disabled', false);
-                        }
-                    }
-                });
-            }
+        wp_enqueue_script(
+            'cache-management-js',
+            plugin_dir_url(__FILE__) . 'js/cache_management.js', 
+            array('jquery'),
+            null,
+            true
+        );
 
-            jQuery(document).ready(function() {
-                check_cache_update_status(); // Initial check on page load
-                setInterval(check_cache_update_status, 1000); // Check every second
-            });
-        </script>
-        <?php
+        // Pass nonce and ajaxurl to JS
+        wp_localize_script('cache-management-js', 'cacheManagementData', array(
+            'nonce' => wp_create_nonce('check_facebook_cache_nonce'),
+            'ajaxurl' => admin_url('admin-ajax.php')
+        ));
     }
 }
-// Add the script to the admin footer
-add_action('admin_footer', 'enqueue_cache_update_check_script');
+add_action('admin_enqueue_scripts', 'enqueue_cache_update_check_script');
 
 // Check the status of the Facebook cache update.
 function check_cache_update_status() {
@@ -333,8 +312,7 @@ function inject_cache_status_to_frontend() {
 // Hook the function to the 'admin_footer' action to inject the cache status into the page
 add_action('admin_footer', 'inject_cache_status_to_frontend');
 
-/*****************************************************************************************************************************************************/
-/*****************************************************************************************************************************************************/
+
 // 3. usqp_fb_feed_cache_page()
 // This function displays the cache management page where users can manually update the cache and modify the cache update frequency.
 // / Cette fonction affiche la page de gestion du cache où les utilisateurs peuvent mettre à jour manuellement le cache et modifier la fréquence de mise à jour du cache.
@@ -444,8 +422,7 @@ if (isset($_POST['update_facebook_cache'])) {
     echo '<div class="updated"><p>' . esc_html($result) . '</p></div>';
 }
 
-/*****************************************************************************************************************************************************/
-/*****************************************************************************************************************************************************/
+
 // 4. display_facebook_cache_admin()
 // Displays a table of cached Facebook posts and reels
 // / Affiche les publications et reels Facebook mis en cache dans un tableau.
@@ -628,52 +605,6 @@ function display_facebook_cache_admin() {
     // Submit button for selected posts and reels
     echo '<input type="submit" id="update-selections-btn" value="Update Selections" class="button-primary" />';
     echo '</form>';
-    ?>
-
-<script type="text/javascript">
-    jQuery(document).ready(function($){
-    // Intercept the click only on the "Update Selections" button
-    $('#update-selections-btn').on('click', function(event){
-        event.preventDefault(); 
-
-        var selectedItems = [];
-        $('input[name="selected_items[]"]:checked').each(function(){
-            selectedItems.push($(this).val());  // Collect the IDs of selected items
-        });
-
-        // Perform the AJAX request
-        $.ajax({
-            url: ajaxurl,  // URL for the WordPress AJAX action
-            method: 'POST',
-            data: {
-                action: 'update_facebook_cache',  
-                nonce: '<?php echo wp_create_nonce('update_facebook_cache_nonce'); ?>', 
-                selected_items: selectedItems 
-            },
-            success: function(response) {
-                // Remove all existing notifications
-                $('.updated, .error').remove();
-
-                // Check if the response is success or error
-                var message = response.success ? response.data.message : response.data.message;
-                var className = response.success ? 'updated' : 'error';  // Success or error CSS class
-
-                // Add the notification to the main wrap of the admin
-                $('.wrap').prepend('<div class="' + className + '"><p>' + message + '</p></div>');
-
-                // Scroll to the top of the page
-                window.scrollTo({ top: 0, behavior: 'smooth' });  // Smooth scroll to the top
-            },
-            error: function() {
-                alert('An error occurred while updating the selections.');
-            }
-        });
-    });
-});
-
-</script>
-
-<?php
 }
 
 // Register the AJAX action for updating selections
@@ -702,7 +633,7 @@ function handle_facebook_cache_selection_update() {
 }
 add_action('wp_ajax_update_facebook_cache', 'handle_facebook_cache_selection_update');
 
-/*****************************************************************************************************************************************************/
+
 // 5. schedule_cache_update_task()
 // This function schedules a cron job based on the selected update frequency to automatically update the cache.
 // / Cette fonction programme une tâche cron en fonction de la fréquence de mise à jour sélectionnée pour mettre à jour automatiquement le cache.
@@ -749,7 +680,7 @@ function schedule_cache_update_task($frequency) {
     }
 }
 
-/*****************************************************************************************************************************************************/
+
 // 6. add_custom_cron_intervals()
 // This function adds custom cron intervals such as 'every_minute' to allow updates every minute.
 // / Cette fonction ajoute des intervalles cron personnalisés tels que 'every_minute' pour permettre des mises à jour toutes les minutes.
@@ -762,7 +693,7 @@ function add_custom_cron_intervals($schedules) {
 }
 add_filter('cron_schedules', 'add_custom_cron_intervals');
 
-/*****************************************************************************************************************************************************/
+
 // 7. fetch_and_update_facebook_cache_cron_handler()
 // This function handles the cron job for automatically updating the cache based on the scheduled frequency.
 // / Cette fonction gère la tâche cron pour la mise à jour automatique du cache en fonction de la fréquence programmée.
@@ -771,4 +702,22 @@ function fetch_and_update_facebook_cache_cron_handler() {
 }
 add_action('usqp_facebook_feed_cache_update_cron', 'fetch_and_update_facebook_cache_cron_handler');
 
-/*****************************************************************************************************************************************************/
+
+// 8. enqueue_cache_management_js()
+// // Loads the cache management JS in the WordPress admin panel
+// / Charge le JS de gestion du cache dans l'admin WordPress
+function enqueue_cache_management_js() {
+    wp_enqueue_script(
+        'cache-management',
+        get_template_directory_uri() . '/js/cache_management.js', 
+        ['jquery'], 
+        null, 
+        true
+    );
+
+    wp_localize_script('cache-management', 'cacheManagement', [
+        'nonce' => wp_create_nonce('update_facebook_cache_nonce'),
+        'ajaxurl' => admin_url('admin-ajax.php')
+    ]);
+}
+add_action('admin_enqueue_scripts', 'enqueue_cache_management_js');

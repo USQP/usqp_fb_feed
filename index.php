@@ -67,7 +67,8 @@ loadEnv(__DIR__ . '/.env');
  *    - USQP_FB_FEED_DIR: Path to the plugin directory.
  *          / Chemin du répertoire du plugin.
  *    - USQP_FB_FEED_URL: URL to the plugin resources.
- *          / URL vers les ressources du plugin. */
+ *          / URL vers les ressources du plugin.
+ *********************************************************************************************/
 
 define('USQP_FB_FEED_DIR', plugin_dir_path(__FILE__));
 define('USQP_FB_FEED_URL', plugin_dir_url(__FILE__));
@@ -84,7 +85,8 @@ define('USQP_FB_FEED_URL', plugin_dir_url(__FILE__));
  *    - frontend_integration.php: Handles the frontend display of the Facebook feed, 
  *          / Gère l'affichage frontend du flux Facebook
  *    - frontend_integration_management.php: Handles the frontend integration settings and CSS customization.
- *          / Gère les paramètres d'intégration frontend et la personnalisation CSS. */
+ *          / Gère les paramètres d'intégration frontend et la personnalisation CSS.
+ **********************************************************************************************/
 
 require_once USQP_FB_FEED_DIR . 'menu.php';
 require_once USQP_FB_FEED_DIR . 'token_management.php';
@@ -97,7 +99,8 @@ require_once USQP_FB_FEED_DIR . 'elementor_integration.php';
  * Create custom table when plugin is activated
  *          / Créer une table personnalisée lors de l'activation du plugin
  *    - Function that creates a custom table for storing Facebook feed information.
- *          / Fonction qui crée une table personnalisée pour stocker les informations du flux Facebook. */
+ *          / Fonction qui crée une table personnalisée pour stocker les informations du flux Facebook.
+ *********************************************************************************************/
 
 function create_usqp_facebook_feed_table() {
     global $wpdb;
@@ -125,7 +128,8 @@ function create_usqp_facebook_feed_table() {
  * Register activation hook for the plugin
  *          / Enregistrer le hook d'activation pour le plugin
  *    - Registers the `create_usqp_facebook_feed_table` function to be run on plugin activation.
- *          / Enregistre la fonction `create_usqp_facebook_feed_table` pour l'activation du plugin. */
+ *          / Enregistre la fonction `create_usqp_facebook_feed_table` pour l'activation du plugin.
+*********************************************************************************************/
 
 register_activation_hook(__FILE__, 'create_usqp_facebook_feed_table');
 
@@ -133,10 +137,10 @@ register_activation_hook(__FILE__, 'create_usqp_facebook_feed_table');
  * Action Hook for menu setup and other functionalities
  *          / Hook d'action pour la configuration du menu et d'autres fonctionnalités
  *    - Adds the plugin menu to the WordPress admin interface.
- *          / Ajoute le menu du plugin dans l'interface d'administration de WordPress. */
+ *          / Ajoute le menu du plugin dans l'interface d'administration de WordPress.
+ **********************************************************************************************/
 
 add_action('admin_menu', 'usqp_fb_feed_admin_menu');
 
-/*********************************************************************************************/
 
 
