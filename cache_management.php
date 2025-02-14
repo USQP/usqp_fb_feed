@@ -104,7 +104,7 @@ function fetch_and_update_facebook_cache() {
             }
 
             $video_id = $video['id'];
-            $video_details_response = @file_get_contents("https://graph.facebook.com/v22.0/{$video_id}?fields=source,title,description,likes.summary(true),permalink_url,updated_time,picture&access_token={$access_token}");
+            $video_details_response = @file_get_contents("https://graph.facebook.com/v22.0/{$video_id}?fields=source,title,description,likes.summary(true),permalink_url,created_time,picture&access_token={$access_token}");
             $video_details = json_decode($video_details_response, true);
 
             if (isset($video_details['source'])) {
@@ -148,7 +148,7 @@ function fetch_and_update_facebook_cache() {
             }
 
             $post_id = $post['id'];
-            $post_details_response = @file_get_contents("https://graph.facebook.com/v22.0/{$post_id}?fields=message,permalink_url,updated_time,attachments,likes.summary(true)&access_token={$access_token}");
+            $post_details_response = @file_get_contents("https://graph.facebook.com/v22.0/{$post_id}?fields=message,permalink_url,created_time,attachments,likes.summary(true)&access_token={$access_token}");
             $post_details = json_decode($post_details_response, true);
 
             // Download attached image or media (if available)
@@ -210,7 +210,7 @@ if (isset($posts['data']) && !empty($posts['data'])) {
 // Add new reels
 if (!empty($reels)) {
     foreach ($reels as $reel) {
-        if (isset($reel['updated_time']) && is_newer_post($reel['updated_time'], $last_cache_update)) {
+        if (isset($reel['created_time']) && is_newer_post($reel['created_time'], $last_cache_update)) {
             $selected_ids[] = $reel['id'];
         }
     }
@@ -514,7 +514,7 @@ function display_facebook_cache_admin() {
             $all_posts_and_reels[] = [
                 'type' => 'reel',
                 'id' => isset($reel['id']) ? $reel['id'] : 'N/A',
-                'created_time' => isset($reel['updated_time']) ? $reel['updated_time'] : (isset($reel['created_time']) ? $reel['created_time'] : 'Unknown'),
+                'created_time' => isset($reel['created_time']) ? $reel['created_time'] : (isset($reel['updated_time']) ? $reel['updated_time'] : 'Unknown'),
                 'description' => isset($reel['description']) ? $reel['description'] : 'No description available',
                 'permalink_url' => isset($reel['permalink_url']) ? $reel['permalink_url'] : '#',
             ];

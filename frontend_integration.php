@@ -175,7 +175,7 @@ function display_feed_frontend($atts) {
                     'type' => 'reel',
                     'id' => $reel['id'],
                     'description' => isset($reel['description']) ? esc_html($reel['description']) : 'No description',
-                    'date' => isset($reel['updated_time']) ? strtotime($reel['updated_time']) : 0,
+                    'date' => isset($reel['created_time']) ? strtotime($reel['created_time']) : 0,
                     'video_url' => esc_url(wp_upload_dir()['baseurl'] . "/usqp/facebook-feed/video_{$reel['id']}.mp4"),
                     'thumbnail_url' => esc_url(wp_upload_dir()['baseurl'] . "/usqp/facebook-feed/thumbnail_video_{$reel['id']}.jpg"),
                     'permalink' => esc_url("https://www.facebook.com/{$page_id}/videos/{$reel['id']}/"),
