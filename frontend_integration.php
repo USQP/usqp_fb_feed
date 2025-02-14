@@ -260,6 +260,8 @@ function display_feed_frontend($atts) {
         $output .= "<div class='fb_view-link'>";
         $output .= "<a href='{$item['permalink']}' target='_blank' class='view-on-facebook'>View on Facebook</a>";
         $output .= "</div>";
+        $output .= "<script src='" . plugin_dir_url(__FILE__) . "js/frontend_integration.js'></script>";
+
 
         $output .= "</div>";
     }
@@ -268,18 +270,4 @@ function display_feed_frontend($atts) {
     return $output;
 }
 
-// 6. enqueue_frontend_integration_js()
-// Enqueues the custom JavaScript for frontend integration, handling the "Read more" / "Read less" functionality and the Slick slider.
-// / Charge le JavaScript personnalisé pour l'intégration frontend, gérant la fonctionnalité "Lire plus" / "Lire moins" et le slider Slick.
-function enqueue_frontend_integration_js() {
-    // Enqueue the custom JS for frontend
-    wp_enqueue_script(
-        'frontend-integration-js', 
-        plugin_dir_url(__FILE__) . 'js/frontend_integration.js', 
-        array('jquery', 'slick-js'),
-        null, 
-        true  
-    );
-}
-add_action('wp_enqueue_scripts', 'enqueue_frontend_integration_js');
 
