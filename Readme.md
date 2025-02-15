@@ -14,7 +14,7 @@ USQP Facebook Feed est une extension WordPress permettant d'afficher un feed Fac
 
 ### ✅ Gestion du cache
 - Configuration de la fréquence de mise à jour : minute, heure, jour, semaine (par défaut : 1 heure).
-- Filtrage des contenus affichés : vous pouvez spécifier les types de publications à afficher (par exemple, uniquement les publications des administrateurs, ou celles des utilisateurs).
+- Filtrage des contenus affichés : vous pouvez spécifier les types de publications à afficher.
 - Suppression et mise à jour manuelle du cache pour un rafraîchissement instantané.
 
 ### ✅ Intégration frontend
@@ -87,7 +87,7 @@ Une fois l’application Facebook configurée, vous pouvez procéder à l’inst
      - **Objectif** : Permet de configurer le comportement du cache pour améliorer les performances et la gestion du contenu affiché.
      - **Options disponibles** :
          - Fréquence de mise à jour : Choisissez la fréquence de mise à jour du cache : minute, heure, jour, ou semaine (par défaut : 1 heure).
-         - Filtrage du contenu : Sélectionnez les types de contenu à afficher (publications, vidéos, événements, etc.).
+         - Filtrage du contenu : Sélectionnez les types de contenu à afficher.
          - Supprimez ou mettez à jour manuellement le cache pour rafraîchir les données.
 
 5. **Intégration Frontend :**
