@@ -18,6 +18,8 @@
  *                                      / Fonction pour afficher la page de gestion du jeton dans l'admin WordPress.
  * 7. display_facebook_info() - Function to display the access token and the associated page information.
  *                                      / Fonction pour afficher les informations du jeton d'accès et la page associée.
+ * 8. check_facebook_connection() - enqueue_usqp_plugin_scripts($hook) - Function groups that manage the display of notifications No user connected
+ *                                      / Groupes de fonctions qui gèrent l'affichage des notifications Aucun utilisateur connecté
  *
  *********************************************************************************************/
 
@@ -456,10 +458,53 @@ function display_facebook_info() {
             </div>
         </div>
         <?php else: ?>
-            <div class="error">
-                <p>No information available. Please connect to Facebook.</p>
-            </div>
         <?php endif; ?>
     </div>
     <?php
 }
+
+
+// 8. check_facebook_connection() - enqueue_usqp_plugin_scripts($hook)
+// Function groups that manage the display of notifications No user connected
+// / Groupes de fonctions qui gèrent l'affichage des notifications Aucun utilisateur connecté
+function check_facebook_connection() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'usqp_facebook_feed';
+
+    $row = $wpdb->get_row("SELECT * FROM $table_name LIMIT 1");
+
+    if ($row && !empty($row->page_access_token)) {
+        wp_send_json_success(array('connected' => true));
+    } else {
+        wp_send_json_error(array('connected' => false));
+    }
+}
+add_action('wp_ajax_check_facebook_connection', 'check_facebook_connection');
+
+
+function enqueue_usqp_plugin_scripts($hook) {
+    // Skip execution if we are in the WP-CLI environment
+    if (defined('WP_CLI') && WP_CLI) {
+        return;
+    }
+
+    $current_screen = get_current_screen();
+
+    if (isset($current_screen->id) && strpos($current_screen->id, 'usqp_fb_feed_token_management') !== false) {
+        wp_enqueue_script(
+            'token-management-js',
+            plugin_dir_url(__FILE__) . 'js/token_management.js', 
+            array('jquery'), 
+            null,
+            true // Load script in footer
+        );
+
+        // Passing data to JavaScript
+        wp_localize_script('token-management-js', 'facebookData', array(
+            'nonce' => wp_create_nonce('check_facebook_token_nonce'),
+            'ajaxurl' => admin_url('admin-ajax.php')
+        ));
+    }
+}
+
+add_action('admin_enqueue_scripts', 'enqueue_usqp_plugin_scripts');

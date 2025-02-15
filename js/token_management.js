@@ -17,7 +17,8 @@
  *                                      / Déconnecte l'utilisateur de Facebook et met à jour la page.
  * 7. Load Facebook Information - Loads Facebook information from the database via Ajax.
  *                                      / Charge les informations Facebook depuis la base de données via Ajax.
- *
+ * 8. Check Facebook Connection Status - Checks Facebook connection status via an AJAX request. 
+ *                                      / Vérifie l'état de la connexion Facebook via une requête AJAX.
  *********************************************************************************************/
 
 // 1. Load Facebook SDK
@@ -142,4 +143,40 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
     }
+});
+
+
+// 8. Check Facebook Connection Status  
+// Checks Facebook connection status via an AJAX request. 
+// / Vérifie l'état de la connexion Facebook via une requête AJAX.  
+document.addEventListener('DOMContentLoaded', function() {
+    function check_facebook_connection_status() {
+        jQuery.ajax({
+            url: facebookData.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'check_facebook_connection',
+                _wpnonce: facebookData.nonce
+            },
+            success: function(response) {
+
+                if (response.success && response.data.connected) {
+                    jQuery('#facebook-notice').remove();
+                } else {
+                    if (jQuery('#facebook-notice').length === 0) {
+                        jQuery('.wrap').prepend('<div class="notice notice-error is-dismissible" id="facebook-notice"><p><strong>Error:</strong> No user is currently logged into Facebook. Please connect to Facebook.</p></div>');
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                if (jQuery('#facebook-notice').length === 0) {
+                    jQuery('.wrap').prepend('<div class="notice notice-error is-dismissible" id="facebook-notice"><p><strong>Error:</strong> There was an error checking the Facebook connection.</p></div>');
+                }
+            }
+        });
+    }
+
+    check_facebook_connection_status();
+
+    setInterval(check_facebook_connection_status, 1000);
 });
