@@ -85,6 +85,15 @@ function handle_shortcode_generation() {
             'type' => isset($_POST['type']) ? sanitize_text_field($_POST['type']) : 'all',
         ];
 
+        // If the user selected "Custom Class Integration" and provided a class
+        if (isset($_POST['integration']) && $_POST['integration'] == 'custom_class_integration' && isset($_POST['custom_class']) && !empty($_POST['custom_class'])) {
+            // Replace the 'integration' attribute with the custom class
+            $atts['integration'] = sanitize_text_field($_POST['custom_class']);
+        } else {
+            // If it's not a custom class, use the normal integration value
+            $atts['integration'] = isset($_POST['integration']) ? sanitize_text_field($_POST['integration']) : 'default_frontend_integration';
+        }
+
         // Generate the shortcode with the selected attributes
         $shortcode = '[usqp_fb_feed ';
         foreach ($atts as $key => $value) {
@@ -139,6 +148,22 @@ function display_shortcode_generator_form() {
                 <option value="posts">Posts only</option>
             </select><br>
             <small>Choose the type of content to display. By default, both types (posts and reels) are shown.</small><br><br>
+
+            <!-- Integration -->
+            <label for="integration">Integration:</label><br>
+            <select id="integration" name="integration">
+                <option value="default_frontend_integration">Default Frontend Integration</option>
+                <option value="elementor_integration">Elementor Integration</option>
+                <option value="custom_class_integration">Custom Class Integration</option>
+            </select><br>
+            <small>Select the integration type used. By default, the default frontend integration is selected. Select "Elementor Integration" for integration with Elementor widgets, or "Custom Class Integration" to define your own class.</small><br><br>
+
+            <!-- Custom Class Input (hidden by default) -->
+            <div id="custom-class-container" style="display:none;">
+                <label for="custom_class">Enter Custom Class:</label><br>
+                <input type="text" id="custom_class" name="custom_class" placeholder="Enter a custom CSS class"><br>
+                <small>Enter a custom CSS class (without the dot) to be applied to the integration</small><br><br>
+            </div>
 
             <!-- Generate button -->
             <input type="submit" name="generate_shortcode" value="Generate Shortcode" class="button button-primary"><br><br>
@@ -241,7 +266,7 @@ add_action('admin_enqueue_scripts', 'enqueue_code_mirror');
 function enqueue_frontend_integration_management_js() {
     wp_enqueue_script(
         'frontend-integration-management', 
-        plugin_dir_url(__FILE__) . 'js/frontend_integration_management.js', 
+        plugin_dir_url(__FILE__) . '/js/frontend_integration_management.js', 
         array('jquery', 'codemirror'), 
         null, 
         true 

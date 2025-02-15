@@ -73,3 +73,22 @@
         });
     });
 });
+
+// 4. Manages field for Custom class
+// Function to show or hide custom class field
+// / Fonction pour afficher ou masquer le champ de classe personnalisée
+document.addEventListener('DOMContentLoaded', function() {
+    const integrationSelect = document.getElementById('integration');
+    const customClassContainer = document.getElementById('custom-class-container');
+
+    function toggleCustomClassInput() {
+        if (integrationSelect.value === 'custom_class_integration') {
+            customClassContainer.style.display = 'block'; 
+        } else {
+            customClassContainer.style.display = 'none'; 
+        }
+    }
+
+    toggleCustomClassInput();
+    integrationSelect.addEventListener('change', toggleCustomClassInput);
+});
