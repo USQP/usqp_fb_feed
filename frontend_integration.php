@@ -228,46 +228,51 @@ function display_feed_frontend($atts) {
         return $text;
     }
 
-    // Start HTML output
-    $output .= "<div class='{$integration} facebook-feed {$display} '>"; // Class based on the display and integration mode
+// Start HTML output
+$output = "<div class='{$integration} facebook-feed {$display}'>"; // Class based on the display and integration mode
 
-    foreach ($feed as $item) {
-        $output .= "<div class='feed-item {$item['type']}' id='{$item['id']}'>";
-        $output .= "<div class='fb_media'>";
-        if (!empty($item['image_url'])) {
-            $output .= "<img src='{$item['image_url']}' alt='Post Image'>";
-        }
-        if (!empty($item['video_url'])) {
-            $output .= "<video controls>
-                            <source src='{$item['video_url']}' type='video/mp4'>
-                            Your browser does not support the video tag.
-                        </video>";
-        }
-        $output .= "</div>";
+foreach ($feed as $item) {
+    $image_html = !empty($item['image_url']) ? "<img src='{$item['image_url']}' alt='Post Image'>" : "";
+    $video_html = !empty($item['video_url']) ? "<video controls>
+                                                   <source src='{$item['video_url']}' type='video/mp4'>
+                                                   Your browser does not support the video tag.
+                                               </video>" : "";
 
-        $output .= "<div class='fb_global_info'>";
-        $output .= "<div class='page-logo'><img src='{$profile_picture_url}' alt='Profile Picture' width='50' height='50'></div>";
-        $output .= "<div class='post-info'>";
-        $output .= "<h3>{$page_title}</h3>";
-        $output .= "<p>Posted: " . time_elapsed(date('Y-m-d H:i:s', $item['date'])) . "</p>";
-        $output .= "</div>";
-        $output .= "</div>";
+    $message = truncate_text($item['message'] ?? $item['description'], $word_limit, $item['permalink']);
+    $time_elapsed = time_elapsed(date('Y-m-d H:i:s', $item['date']));
+    $script_url = plugin_dir_url(__FILE__) . "js/frontend_integration.js";
 
-        $output .= "<div class='fb_content'>";
-        $output .= "<p>" . truncate_text($item['message'] ?? $item['description'], $word_limit, $item['permalink']) . "</p>";
-        $output .= "</div>";
+    $output .= <<<HTML
+    <div class="feed-item {$item['type']}" id="{$item['id']}">
+        <div class="fb_media">
+            {$image_html}
+            {$video_html}
+        </div>
 
-        $output .= "<div class='fb_view-link'>";
-        $output .= "<a href='{$item['permalink']}' target='_blank' class='view-on-facebook'>View on Facebook</a>";
-        $output .= "</div>";
-        $output .= "<script src='" . plugin_dir_url(__FILE__) . "js/frontend_integration.js'></script>";
+        <div class="fb_global_info">
+            <div class="page-logo">
+                <img src="{$profile_picture_url}" alt="Profile Picture" width="50" height="50">
+            </div>
+            <div class="post-info">
+                <h3>{$page_title}</h3>
+                <p>Posted: {$time_elapsed}</p>
+            </div>
+        </div>
 
+        <div class="fb_content">
+            <p>{$message}</p>
+        </div>
 
-        $output .= "</div>";
-    }
+        <div class="fb_view-link">
+            <a href="{$item['permalink']}" target="_blank" class="view-on-facebook">View on Facebook</a>
+        </div>
 
-    $output .= "</div>";
-    return $output;
+        <script src="{$script_url}"></script>
+    </div>
+HTML;
 }
 
+$output .= "</div>";
+return $output;
+}
 
