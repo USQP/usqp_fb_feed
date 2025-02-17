@@ -1,6 +1,10 @@
+![GitHub Banner](https://unsitequipeps.fr/wp-content/uploads/2025/02/github_banner-900x202.jpg)
+
 # USQP Facebook Feed Documentation
 
 USQP Facebook Feed est une extension WordPress permettant d'afficher un feed Facebook sur votre site en utilisant l'API Graph de Facebook. Elle offre une gestion simplifiée du token d'accès, un système de cache performant, et une personnalisation avancée du rendu via un widget Elementor et une intégration CSS frontend complètement personnalisable.
+
+Pour plus d'informations, consultez la [page de l'extension](https://unsitequipeps.fr/blog/usqp_fb_feed/).
 
 ---
 

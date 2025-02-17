@@ -56,7 +56,7 @@ function usqp_fb_feed_integration_page() {
         <?php if (!empty($shortcode)): ?>
             <div class="updated">
                 <p><strong>Generated shortcode:</strong></p>
-                <textarea rows="1" cols="100" readonly><?php echo esc_textarea($shortcode); ?></textarea>
+                <textarea rows="2" cols="100" readonly><?php echo esc_textarea($shortcode); ?></textarea>
             </div>
         <?php endif; ?>
 

@@ -5,6 +5,7 @@
  * Version: 1.0
  * Author: Aurélien Béguin - Un site qui Peps
  * Author URI: https://unsitequipeps.fr
+ * Plugin URI: https://unsitequipeps.fr/blog/usqp_fb_feed/
  * Contributors: Aurélien Béguin
  *********************************************************************************************/
 
